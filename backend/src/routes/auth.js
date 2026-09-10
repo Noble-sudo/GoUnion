@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import multer from 'multer';
 import { Router } from 'express';
-import { EmailVerificationToken, OtpToken, PasswordResetToken, RefreshToken, User } from '../models.js';
+import { EmailVerificationToken, PendingSignup, PasswordResetToken, RefreshToken, User } from '../models.js';
 import { env } from '../config/env.js';
 import { publicUser } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -131,48 +131,49 @@ authRouter.post(
     if (!email) throw new HttpError(400, 'email is required.');
     if (!otp) throw new HttpError(400, 'otp is required.');
 
-    const user = await User.findOne({ email });
-    if (!user) throw new HttpError(404, 'No account found with that email.');
-
-    if (user.email_verified) {
-      return res.json({ status: 'ok', message: 'Email already verified.' });
+    const pending = await PendingSignup.findOne({ email, expires_at: { $gt: new Date() } });
+    if (!pending || pending.otp_hash !== hashOtp(otp)) {
+      throw new HttpError(400, 'Invalid or expired code. Please try again.');
     }
 
-    const otpRecord = await OtpToken.findOne({
-      otp_hash: hashOtp(otp),
-      user_id: user.id,
-      used_at: null,
-      expires_at: { $gt: new Date() },
-    });
-    if (!otpRecord) throw new HttpError(400, 'Invalid or expired code. Please try again.');
+    if (await User.exists({ email })) throw new HttpError(409, 'Email already registered.');
+    if (await User.exists({ username: pending.username })) {
+      throw new HttpError(409, 'That username was taken while your signup was pending. Please register again with a different username.');
+    }
 
-    user.email_verified = true;
+    const user = await User.create({
+      username: pending.username,
+      email: pending.email,
+      password_hash: pending.password_hash,
+      is_active: true,
+      email_verified: true,
+      role: pending.email === 'ezeilodavid292@gmail.com' ? 'admin' : 'user',
+      profile: { full_name: pending.full_name, university: 'University Student' },
+    });
+    user.profile.user_id = user.id;
     await user.save();
-    otpRecord.used_at = new Date();
-    await otpRecord.save();
+    await PendingSignup.deleteOne({ _id: pending._id });
 
     res.json({ status: 'ok', message: 'Email verified.' });
   }),
 );
 
-/**
- * POST /auth/resend-otp
- * Body: { email }
- * Sends a fresh OTP to the given (unverified) email address.
- */
 authRouter.post(
   '/resend-otp',
   asyncHandler(async (req, res) => {
     const email = String(req.body.email || '').trim().toLowerCase();
     if (!email) throw new HttpError(400, 'email is required.');
 
-    const user = await User.findOne({ email });
-    // Respond the same way whether the user exists or not (no enumeration)
-    if (user && !user.email_verified) {
-      await issueOtp(user);
+    const pending = await PendingSignup.findOne({ email });
+    if (pending) {
+      const otp = generateOtp();
+      pending.otp_hash = hashOtp(otp);
+      pending.expires_at = new Date(Date.now() + 15 * 60 * 1000);
+      await pending.save();
+      await sendOtpEmail({ email }, otp);
     }
 
-    res.json({ status: 'ok', message: 'If the email is pending verification, a new code has been sent.' });
+    res.json({ status: 'ok', message: 'If a pending registration exists for that email, a new code has been sent.' });
   }),
 );
 
