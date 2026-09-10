@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { Router } from 'express';
-import { EmailVerificationToken, Follow, OtpToken, Post, User } from '../models.js';
+import { EmailVerificationToken, Follow, PendingSignup, Post, User } from '../models.js';
 import { addNotification, publicUser, serializePost } from '../store.js';
 import { env } from '../config/env.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -17,34 +17,34 @@ export const usersRouter = Router();
 usersRouter.post(
   '/',
   asyncHandler(async (req, res) => {
-    console.log(`[Users Route] Hit POST /api/users/ with email: ${req.body?.email}`);
     const { username, email, password, full_name } = req.body;
     if (!username || !email || !password) throw new HttpError(400, 'username, email and password are required.');
-    if (await User.exists({ email: String(email).toLowerCase() })) throw new HttpError(409, 'Email already registered.');
+
+    const normalizedEmail = String(email).toLowerCase();
+    if (await User.exists({ email: normalizedEmail })) throw new HttpError(409, 'Email already registered.');
     if (await User.exists({ username })) throw new HttpError(409, 'Username already taken.');
 
-    const user = await User.create({
-      username,
-      email,
-      password_hash: await bcrypt.hash(password, 10),
-      is_active: true,
-      role: email === 'ezeilodavid292@gmail.com' ? 'admin' : 'user',
-      profile: { full_name: full_name || username, university: 'University Student' },
-    });
-    user.profile.user_id = user.id;
-    await user.save();
-
-    // Issue OTP for email verification
-    await OtpToken.deleteMany({ user_id: user.id, used_at: null });
+    const password_hash = await bcrypt.hash(password, 10);
     const otp = generateOtp();
-    await OtpToken.create({
-      otp_hash: hashOtp(otp),
-      user_id: user.id,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000),
-    });
-    await sendOtpEmail(user, otp);
 
-    res.status(201).json(await publicUser(user));
+    // Upsert: resubmitting the form (e.g. OTP never arrived) just resets the code
+    // instead of creating duplicate pending entries.
+    await PendingSignup.findOneAndUpdate(
+      { email: normalizedEmail },
+      {
+        email: normalizedEmail,
+        username,
+        password_hash,
+        full_name: full_name || username,
+        otp_hash: hashOtp(otp),
+        expires_at: new Date(Date.now() + 15 * 60 * 1000),
+      },
+      { upsert: true, setDefaultsOnInsert: true },
+    );
+
+    await sendOtpEmail({ email: normalizedEmail }, otp);
+
+    res.status(201).json({ status: 'pending_verification', email: normalizedEmail });
   }),
 );
 
