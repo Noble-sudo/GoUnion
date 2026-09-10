@@ -248,6 +248,19 @@ const otpTokenSchema = new Schema(
   baseOptions,
 );
 
+const pendingSignupSchema = new Schema(
+  {
+    email: { type: String, unique: true, required: true, lowercase: true, trim: true, index: true },
+    username: { type: String, required: true, trim: true },
+    password_hash: { type: String, required: true },
+    full_name: { type: String, default: '' },
+    otp_hash: { type: String, required: true },
+    expires_at: { type: Date, required: true, index: { expires: 0 } },
+  },
+  baseOptions,
+);
+export const PendingSignup = models.PendingSignup || model('PendingSignup', pendingSignupSchema);
+
 export const OtpToken = models.OtpToken || model('OtpToken', otpTokenSchema);
 export const User = models.User || model('User', userSchema);
 export const Follow = models.Follow || model('Follow', followSchema);
