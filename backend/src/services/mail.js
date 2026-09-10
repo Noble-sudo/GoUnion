@@ -1,36 +1,47 @@
-import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
 
-const hasSmtpConfig = () => Boolean(env.smtp.host && env.smtp.user && env.smtp.pass);
+// Render's free tier blocks outbound SMTP ports (25/465/587), so nodemailer
+// can never reach smtp.resend.com from here. Resend's HTTP API works instead —
+// it's plain HTTPS (443), which is never blocked.
+const RESEND_API_KEY = env.smtp.pass; // Resend API key, already stored in SMTP_PASS
+const RESEND_API_URL = 'https://api.resend.com/emails';
 
-const getTransport = () => {
-  if (!hasSmtpConfig()) return null;
-  return nodemailer.createTransport({
-    host: env.smtp.host,
-    port: env.smtp.port,
-    secure: env.smtp.secure,
-    auth: {
-      user: env.smtp.user,
-      pass: env.smtp.pass,
-    },
-  });
-};
+const hasResendConfig = () => Boolean(RESEND_API_KEY);
 
 export const sendMail = async ({ to, subject, text, html }) => {
-  const transport = getTransport();
-  if (!transport) {
-    console.warn(`[WARNING] SMTP is not configured. Email to ${to} was skipped.`);
+  if (!hasResendConfig()) {
+    console.warn(`[WARNING] Resend is not configured. Email to ${to} was skipped.`);
     console.log(`[mail:dev] ${subject} -> ${to}\n${text}`);
     return { skipped: true };
   }
 
-  return transport.sendMail({
-    from: env.mailFrom,
-    to,
-    subject,
-    text,
-    html,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // never hang the request
+
+  try {
+    const res = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from: env.mailFrom, to: [to], subject, text, html }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      console.error(`[mail] Resend API error ${res.status}: ${errBody}`);
+      return { skipped: true, error: true };
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error('[mail] Failed to send via Resend:', err.message);
+    return { skipped: true, error: true };
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 export const sendWelcomeEmail = (user, verifyUrl) =>
