@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Maximize2, Minimize2, X } from "lucide-react";
+import { Play, Pause, Maximize2, Minimize2, X, Volume2, VolumeX } from "lucide-react";
 // ─── Helpers ──────────────────────────────────────────────
 const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "mov", "mkv", "avi", "m4v"];
 export function isVideoUrl(url) {
@@ -181,7 +181,7 @@ export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover,
                 setPlaying(false);
                 flashTapIcon('pause');
             }
-        }, children: [_jsx("video", { ref: videoRef, src: src, className: `w-full h-full ${objectCover !== false ? 'object-cover' : 'object-contain'}`, muted: muted, playsInline: true, preload: "metadata", onTimeUpdate: () => {
+        }, children: [_jsx("video", { ref: videoRef, src: src, className: `w-full h-full ${objectCover !== false ? 'object-cover' : 'object-contain'}`, muted: muted, playsInline: true, preload: "auto", onTimeUpdate: () => {
                     const v = videoRef.current;
                     if (!v)
                         return;
@@ -191,6 +191,7 @@ export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover,
                 }, onLoadedData: onLoadedData, onLoadedMetadata: () => {
                     setDuration(videoRef.current?.duration ?? 0);
                     setBuffering(false);
+                    onLoadedData?.();
                 }, onWaiting: () => setBuffering(true), onCanPlay: () => { setBuffering(false); onLoadedData?.(); }, onEnded: () => { setPlaying(false); setShowControls(true); } }), _jsx("div", { className: "absolute inset-0 pointer-events-none rounded-3xl", style: { boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)" } }), _jsx(AnimatePresence, { children: buffering && !playing && (_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "absolute inset-0 flex items-center justify-center pointer-events-none", children: _jsx("div", { className: "w-14 h-14 rounded-full border-2 border-blue-400/20 border-t-blue-400 animate-spin" }) })) }), _jsx(AnimatePresence, { children: tapIcon && (_jsx(motion.div, { initial: { scale: 1.2, opacity: 0.9 }, animate: { scale: 1, opacity: 0 }, exit: { opacity: 0 }, transition: { duration: 0.5, ease: "easeOut" }, className: "absolute inset-0 flex items-center justify-center pointer-events-none z-30", children: _jsx("div", { className: "w-16 h-16 rounded-full flex items-center justify-center", style: {
                             background: "rgba(0,0,0,0.5)",
                             backdropFilter: "blur(12px)",
@@ -206,6 +207,6 @@ export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover,
                     }, onClick: (e) => e.stopPropagation(), children: [_jsx("div", { className: "relative cursor-pointer py-4 -my-4", style: { touchAction: "none" }, onPointerDown: onPointerDown, onPointerMove: onPointerMove, onPointerUp: onPointerUp, children: _jsxs("div", { ref: progressRef, className: "relative h-[6px] rounded-full pointer-events-none", style: { background: "rgba(255,255,255,0.15)" }, children: [_jsx("div", { className: "absolute inset-y-0 left-0 rounded-full", style: { width: `${bufferedPct}%`, background: "rgba(255,255,255,0.2)" } }), _jsx("div", { className: "absolute inset-y-0 left-0 rounded-full", style: {
                                             width: `${progress}%`,
                                             background: "linear-gradient(90deg, #3b82f6, #60a5fa)"
-                                        } }), _jsx("div", { className: "absolute top-1/2 -translate-y-1/2 -translate-x-1/2", style: { left: `${progress}%` }, children: _jsx("div", { className: "w-4 h-4 rounded-full bg-white", style: { boxShadow: "0 0 10px rgba(59,130,246,0.8), 0 2px 6px rgba(0,0,0,0.5)" } }) })] }) }), _jsxs("div", { className: "flex items-center gap-1 mt-2", children: [_jsx("div", { className: "flex-1 flex justify-center", children: _jsxs("div", { className: "flex items-center gap-1.5 opacity-40", children: [_jsx("div", { className: "w-1 h-1 rounded-full bg-blue-400" }), _jsx("span", { className: "text-[9px] font-black text-white uppercase tracking-[0.15em]", children: "GoUnion" }), _jsx("div", { className: "w-1 h-1 rounded-full bg-blue-400" })] }) }), _jsx("button", { onClick: toggleFullscreen, className: "w-8 h-8 flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all", children: fullscreen ? _jsx(Minimize2, { size: 15 }) : _jsx(Maximize2, { size: 15 }) })] })] })) })] }));
+                                        } }), _jsx("div", { className: "absolute top-1/2 -translate-y-1/2 -translate-x-1/2", style: { left: `${progress}%` }, children: _jsx("div", { className: "w-4 h-4 rounded-full bg-white", style: { boxShadow: "0 0 10px rgba(59,130,246,0.8), 0 2px 6px rgba(0,0,0,0.5)" } }) })] }) }), _jsxs("div", { className: "flex items-center gap-1 mt-2", children: [_jsx("div", { className: "flex-1 flex justify-center", children: _jsxs("div", { className: "flex items-center gap-1.5 opacity-40", children: [_jsx("div", { className: "w-1 h-1 rounded-full bg-blue-400" }), _jsx("span", { className: "text-[9px] font-black text-white uppercase tracking-[0.15em]", children: "GoUnion" }), _jsx("div", { className: "w-1 h-1 rounded-full bg-blue-400" })] }) }), _jsx("button", { onClick: toggleMute, className: "w-8 h-8 flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all", children: muted ? _jsx(VolumeX, { size: 15 }) : _jsx(Volume2, { size: 15 }) }), _jsx("button", { onClick: toggleFullscreen, className: "w-8 h-8 flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all", children: fullscreen ? _jsx(Minimize2, { size: 15 }) : _jsx(Maximize2, { size: 15 }) })] })] })) })] }));
 };
 export const MediaPlayer = ({ url, alt, onLoad, onLoadedData, autoPlayOnVisible, objectCover, maxHeight }) => isVideoUrl(url) ? _jsx(VideoPlayer, { src: url, onLoadedData: onLoadedData, autoPlayOnVisible: autoPlayOnVisible, objectCover: objectCover, maxHeight: maxHeight }) : _jsx(ImageViewer, { src: url, alt: alt, onLoad: onLoad });

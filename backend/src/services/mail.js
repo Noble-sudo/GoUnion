@@ -16,7 +16,7 @@ export const sendMail = async ({ to, subject, text, html }) => {
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // never hang the request
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     const res = await fetch(RESEND_API_URL, {
@@ -25,7 +25,13 @@ export const sendMail = async ({ to, subject, text, html }) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ from: env.mailFrom, to: [to], subject, text, html }),
+      body: JSON.stringify({
+        from: env.mailFrom,
+        to: [to],
+        subject,
+        text,
+        html,
+      }),
       signal: controller.signal,
     });
 
