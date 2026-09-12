@@ -86,6 +86,31 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  body:has(video)::after {
+    content: 'GoUnion';
+    position: fixed;
+    top: 5.5rem;
+    left: 1rem;
+    z-index: 999;
+    pointer-events: none;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    background: rgba(0, 0, 0, 0.45);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.625rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+  }
+
+  @media (min-width: 768px) {
+    body:has(video)::after {
+      left: calc(16rem + 1rem);
+    }
+  }
 }
 
 @layer components {

@@ -2,12 +2,13 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useInfiniteQuery, useMutation, useQueryClient, } from "@tanstack/react-query";
-import { Heart, MessageCircle, Volume2, VolumeX, Plus, Share2, X, Music2, Play } from "lucide-react";
+import { Heart, MessageCircle, Volume2, VolumeX, Plus, Share2, Download, X, Music2, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CommentSection } from "../components/feed/CommentSection";
 import { CreateReel } from "../components/feed/CreateReel";
 import { api } from "../services/api";
 import { useAuthStore } from "../store";
+import { saveVideoFile, shareVideoFile } from "../utils/videoShare";
 const isVideoUrl = (url) => {
     if (!url)
         return false;
@@ -142,21 +143,17 @@ export const Goto = () => {
             : `Check out this reel from @${reel.author.username} on GoUnion.`;
         const url = `${window.location.origin}/post/${reel.id}`;
         try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: "GoUnion Reel",
-                    text,
-                    url,
-                });
-            }
-            else {
-                await navigator.clipboard.writeText(`${text}\n${url}`);
-                alert("Reel content copied to clipboard!");
-            }
+            const result = await shareVideoFile(reel.imageUrl, `gounion-reel-${reel.id}`, "GoUnion Reel", text);
+            if (result === "saved") console.info("GoUnion video saved for sharing");
         }
         catch (err) {
+            window.alert("Unable to save this video. Please try again.");
             console.error("Error sharing:", err);
         }
+    };
+    const handleSave = async (reel) => {
+        try { await saveVideoFile(reel.imageUrl, `gounion-reel-${reel.id}`); }
+        catch (err) { console.error("Error saving reel:", err); }
     };
     const reels = Array.from(new Map((data?.pages.flat() || []).map((post) => [post.id, post])).values()).filter((post) => post.isReel || post.mediaType === "video" || isVideoUrl(post.imageUrl));
     if (status === "pending") {

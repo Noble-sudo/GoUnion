@@ -32,9 +32,12 @@ export const Login = () => {
         setError(null);
         try {
             if (isSignup) {
-                await api.auth.signup({ username, email, password, fullName });
+                const signupResult = await api.auth.signup({ username, email, password, fullName });
                 setConfirmationEmail(email);
-                navigate(`/confirm-email?email=${encodeURIComponent(email)}`);
+                const devCode = signupResult?.dev_code
+                    ? `&dev_code=${encodeURIComponent(signupResult.dev_code)}`
+                    : "";
+                navigate(`/confirm-email?email=${encodeURIComponent(email)}${devCode}`);
                 return;
             }
             const response = await api.auth.login({ email, password });

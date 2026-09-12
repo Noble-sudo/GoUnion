@@ -9,6 +9,7 @@ import { CommentSection } from "./CommentSection";
 import { useAuthStore } from "../../store";
 import { MediaPlayer } from "../ui/MediaPlayer";
 import { useToast } from "../ui/Toast";
+import { saveVideoFile, shareVideoFile } from "../../utils/videoShare";
 export const PostCard = ({ post, defaultShowComments = false }) => {
     const { toast } = useToast();
     const [showComments, setShowComments] = React.useState(defaultShowComments);
@@ -22,7 +23,7 @@ export const PostCard = ({ post, defaultShowComments = false }) => {
     // View counting logic
     const cardRef = useRef(null);
     const [hasViewed, setHasViewed] = React.useState(false);
-    const [localViews, setLocalViews] = React.useState(post.views || Math.floor(Math.random() * 50) + 10);
+    const [localViews, setLocalViews] = React.useState(post.views || 0);
 
     useEffect(() => {
         if (hasViewed || !cardRef.current) return;
@@ -30,7 +31,9 @@ export const PostCard = ({ post, defaultShowComments = false }) => {
             if (entries[0].isIntersecting) {
                 setHasViewed(true);
                 setLocalViews(v => v + 1);
-                api.posts.view?.(post.id).catch(() => {});
+                api.posts.view?.(post.id).then((result) => {
+                    if (typeof result?.views_count === 'number') setLocalViews(result.views_count);
+                }).catch(() => {});
                 observer.disconnect();
             }
         }, { threshold: 0.5 });
@@ -158,6 +161,11 @@ export const PostCard = ({ post, defaultShowComments = false }) => {
             ? `${post.content}\n\nShared from GoUnion by @${post.author.username}`
             : `Check out this post from @${post.author.username} on GoUnion.`;
         try {
+            if (post.mediaType === "video" && post.imageUrl) {
+                const result = await shareVideoFile(post.imageUrl, `gounion-post-${post.id}`, "GoUnion video", text);
+                toast(result === "shared" ? "Video shared" : "Video saved", "success");
+                return;
+            }
             if (navigator.share) {
                 await navigator.share({
                     title: "GoUnion post",
@@ -181,16 +189,20 @@ export const PostCard = ({ post, defaultShowComments = false }) => {
             return;
         try {
             toast("Downloading...", "success");
-            const response = await fetch(post.imageUrl);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `gounion_post_${post.id}.${blob.type.split('/')[1] || 'mp4'}`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
+            if (post.mediaType === "video") {
+                await saveVideoFile(post.imageUrl, `gounion-post-${post.id}`);
+            } else {
+                const response = await fetch(post.imageUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `gounion_post_${post.id}.${blob.type.split('/')[1] || 'media'}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            }
         }
         catch (error) {
             toast("Download failed", "error");

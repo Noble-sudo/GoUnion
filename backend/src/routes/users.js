@@ -42,9 +42,13 @@ usersRouter.post(
       { upsert: true, setDefaultsOnInsert: true },
     );
 
-    await sendOtpEmail({ email: normalizedEmail }, otp);
+    const mailResult = await sendOtpEmail({ email: normalizedEmail }, otp);
 
-    res.status(201).json({ status: 'pending_verification', email: normalizedEmail });
+    res.status(201).json({
+      status: 'pending_verification',
+      email: normalizedEmail,
+      ...(mailResult.devCode ? { dev_code: mailResult.devCode } : {}),
+    });
   }),
 );
 

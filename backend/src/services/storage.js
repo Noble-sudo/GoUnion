@@ -25,7 +25,8 @@ const getExtension = (originalname = '', mimetype = '') => {
 
 const uploadLocally = (file) => {
   const ext = getExtension(file.originalname, file.mimetype);
-  const filename = `${nanoid()}${ext}`;
+  const isAudio = file.mimetype?.startsWith('audio/');
+  const filename = `${nanoid()}${isAudio ? '.audio' : ''}${ext}`;
   const filepath = path.join(UPLOADS_DIR, filename);
   fs.writeFileSync(filepath, file.buffer);
 

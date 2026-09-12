@@ -9,6 +9,7 @@ const OTP_LENGTH = 6;
 export const ConfirmEmail = () => {
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
+  const devCode = searchParams.get("dev_code") || "";
   const navigate = useNavigate();
 
   const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(""));
@@ -21,7 +22,10 @@ export const ConfirmEmail = () => {
   // Auto-focus first input on mount
   useEffect(() => {
     inputRefs.current[0]?.focus();
-  }, []);
+    if (devCode.length === OTP_LENGTH) {
+      setDigits(devCode.split(""));
+    }
+  }, [devCode]);
 
   // Countdown timer for resend button
   useEffect(() => {

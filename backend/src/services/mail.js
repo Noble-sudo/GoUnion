@@ -7,12 +7,13 @@ const RESEND_API_KEY = env.smtp.pass; // Resend API key, already stored in SMTP_
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
 const hasResendConfig = () => Boolean(RESEND_API_KEY);
+const isDevelopmentFallback = () => !hasResendConfig() && env.nodeEnv !== 'production';
 
 export const sendMail = async ({ to, subject, text, html }) => {
   if (!hasResendConfig()) {
     console.warn(`[WARNING] Resend is not configured. Email to ${to} was skipped.`);
     console.log(`[mail:dev] ${subject} -> ${to}\n${text}`);
-    return { skipped: true };
+    return { skipped: true, dev: isDevelopmentFallback() };
   }
 
   const controller = new AbortController();
@@ -58,16 +59,18 @@ export const sendWelcomeEmail = (user, verifyUrl) =>
     html: `<p>Welcome to GoUnion.</p><p><a href="${verifyUrl}">Confirm your email</a></p>`,
   });
 
-export const sendPasswordResetEmail = (user, resetUrl) =>
-  sendMail({
+export const sendPasswordResetEmail = async (user, resetUrl) => {
+  const result = await sendMail({
     to: user.email,
     subject: 'Reset your GoUnion password',
     text: `Reset your GoUnion password here: ${resetUrl}\nThis link expires in 60 minutes.`,
     html: `<p>Reset your GoUnion password:</p><p><a href="${resetUrl}">Reset password</a></p><p>This link expires in 60 minutes.</p>`,
   });
+  return result.dev ? { ...result, devResetUrl: resetUrl } : result;
+};
 
-export const sendOtpEmail = (user, otp) =>
-  sendMail({
+export const sendOtpEmail = async (user, otp) => {
+  const result = await sendMail({
     to: user.email,
     subject: 'Your GoUnion verification code',
     text: `Your GoUnion verification code is: ${otp}\nIt expires in 15 minutes. Do not share this code with anyone.`,
@@ -79,3 +82,5 @@ export const sendOtpEmail = (user, otp) =>
         <p style="color:#555;font-size:12px;margin:24px 0 0;text-align:center;">Expires in 15 minutes &bull; Do not share this code</p>
       </div>`,
   });
+  return result.dev ? { ...result, devCode: otp } : result;
+};

@@ -98,7 +98,7 @@ export const GroupDetails = () => {
 
     const { data: userChats = [] } = useQuery({
         queryKey: ["chats"],
-        queryFn: api.chats.getConversations,
+        queryFn: api.chats.getAll,
         staleTime: 30000,
     });
 
@@ -378,7 +378,9 @@ export const GroupDetails = () => {
     };
 
     const handleSendVoiceNote = async (audioBlob) => {
-        const audioFile = new File([audioBlob], 'voice_note.webm', { type: 'audio/webm' });
+        const audioType = audioBlob.type || 'audio/webm';
+        const audioExtension = audioType.includes('wav') ? 'wav' : audioType.includes('ogg') ? 'ogg' : 'webm';
+        const audioFile = new File([audioBlob], `voice_note.${audioExtension}`, { type: audioType });
         createPostMutation.mutate({ caption: '', image: audioFile, replyToId: replyToMsg?.id });
     };
 
@@ -870,7 +872,17 @@ export const GroupDetails = () => {
                                         </div>
                                     )}
                                 </footer>
-                            ) : null}
+                            ) : (
+                                <footer className="bg-[#0a0a0c]/95 border-t border-white/5 p-4 text-center shrink-0 z-30 relative">
+                                    <button
+                                        onClick={() => group?.privacy === "private" ? setIsJoinModalOpen(true) : joinMutation.mutate(undefined)}
+                                        disabled={joinMutation.isPending || isPending}
+                                        className="mx-auto flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-xs font-black uppercase tracking-widest text-black transition-all hover:bg-zinc-200 disabled:opacity-50"
+                                    >
+                                        {isPending ? "Request Pending" : group?.privacy === "private" ? "Request to Join" : "Join Group to Message"}
+                                    </button>
+                                </footer>
+                            )}
                         </motion.div>
                     )}
 

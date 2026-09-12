@@ -25,7 +25,7 @@ import { messagesRouter } from './routes/messages.js';
 export const app = express();
 
 app.use(helmet({
-  crossOriginResourcePolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: false,
 }));
 app.use(

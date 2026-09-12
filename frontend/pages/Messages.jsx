@@ -32,6 +32,7 @@ export const Messages = () => {
     const bottomRef = useRef(null);
     const fileInputRef = useRef(null);
     const inputRef = useRef(null);
+    const sendInFlightRef = useRef(false);
     const [selectedChatId, setSelectedChatId] = useState(null);
     const [messageText, setMessageText] = useState("");
     const [searchText, setSearchText] = useState("");
@@ -41,6 +42,7 @@ export const Messages = () => {
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
     const [pendingChat, setPendingChat] = useState(null);
     const [chatPrepareError, setChatPrepareError] = useState(null);
+    const initializingUserIdRef = useRef(null);
     const [contactEmails, setContactEmails] = useState(new Set());
     const [contactNames, setContactNames] = useState(new Set());
     const [isDesktop, setIsDesktop] = useState(() => window.matchMedia("(min-width: 768px)").matches);
@@ -92,6 +94,7 @@ export const Messages = () => {
             setSearchParams({}, { replace: true });
         },
         onError: (error) => {
+            initializingUserIdRef.current = null;
             setChatPrepareError(getApiErrorMessage(error, "Unable to prepare this chat."));
             setPendingChat((current) => current ? { ...current, lastMessage: "Unable to prepare chat" } : current);
         },
@@ -122,11 +125,13 @@ export const Messages = () => {
         if (!userIdFromQuery || !chats) return;
         const existingChat = chats.find((chat) => String(chat.partner.id) === String(userIdFromQuery));
         if (existingChat) {
+            initializingUserIdRef.current = null;
             setSelectedChatId(existingChat.id);
             setSearchParams({}, { replace: true });
             return;
         }
-        if (!createChatMutation.isPending) {
+        if (!createChatMutation.isPending && initializingUserIdRef.current !== String(userIdFromQuery)) {
+            initializingUserIdRef.current = String(userIdFromQuery);
             const tempChatId = `temp-${userIdFromQuery}`;
             const tempChat = { id: tempChatId, partner: { id: userIdFromQuery, username: queryUsername, fullName: queryName, avatarUrl: queryAvatar || null }, lastMessage: "Starting conversation...", timestamp: "", unreadCount: 0 };
             setPendingChat(tempChat);
@@ -404,11 +409,16 @@ export const Messages = () => {
             queryClient.setQueryData(["chats"], context?.previousChats);
             toast(getApiErrorMessage(err, "Unable to send message"), "error");
         },
+        onSettled: () => {
+            sendInFlightRef.current = false;
+        },
     });
 
     const handleSend = () => {
-        if (!selectedChatId) return;
+        if (!selectedChatId || sendMessageMutation.isPending || sendInFlightRef.current) return;
         if (!messageText.trim() && !attachment) return;
+
+        sendInFlightRef.current = true;
         
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         setIsWeTyping(false);
@@ -420,12 +430,14 @@ export const Messages = () => {
     };
 
     const handleSendVoiceNote = (audioBlob) => {
-        if (!selectedChatId) return;
+        if (!selectedChatId || sendMessageMutation.isPending || sendInFlightRef.current) return;
+        sendInFlightRef.current = true;
         sendMessageMutation.mutate({ chatId: selectedChatId, audioBlob, replyToId: replyToMsg?.id });
     };
 
     const handleSendSticker = async (stickerUrl) => {
-        if (!selectedChatId) return;
+        if (!selectedChatId || sendMessageMutation.isPending || sendInFlightRef.current) return;
+        sendInFlightRef.current = true;
         setIsEmojiPickerOpen(false);
         sendMessageMutation.mutate({ chatId: selectedChatId, sticker: { url: stickerUrl, id: stickerUrl.split("seed=").pop() || "sticker" }, replyToId: replyToMsg?.id });
     };

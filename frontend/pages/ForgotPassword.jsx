@@ -14,7 +14,11 @@ export const ForgotPassword = () => {
         setLoading(true);
         setError(null);
         try {
-            await api.auth.forgotPassword(email);
+            const result = await api.auth.forgotPassword(email);
+            if (result?.dev_reset_url) {
+                window.location.assign(result.dev_reset_url);
+                return;
+            }
             setSent(true);
         }
         catch (err) {

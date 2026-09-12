@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import multer from 'multer';
 import { Router } from 'express';
-import { EmailVerificationToken, PendingSignup, PasswordResetToken, RefreshToken, User } from '../models.js';
+import { EmailVerificationToken, OtpToken, PendingSignup, PasswordResetToken, RefreshToken, User } from '../models.js';
 import { env } from '../config/env.js';
 import { publicUser } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -83,7 +83,10 @@ authRouter.post(
         user_id: user.id,
         expires_at: new Date(Date.now() + 60 * 60 * 1000),
       });
-      await sendPasswordResetEmail(user, `${env.appUrl}/reset-password?token=${token}`);
+      const mailResult = await sendPasswordResetEmail(user, `${env.appUrl}/reset-password?token=${token}`);
+      if (mailResult.devResetUrl) {
+        return res.json({ status: 'ok', message: 'Development reset link generated.', dev_reset_url: mailResult.devResetUrl });
+      }
     }
 
     res.json({ status: 'ok', message: 'If the email exists, a reset link has been sent.' });
