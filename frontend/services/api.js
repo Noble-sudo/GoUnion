@@ -2,8 +2,11 @@
 import axios from 'axios';
 import { useAuthStore } from '../store';
 import { authStorage } from '../utils/persistentStorage';
-export const API_URL = import.meta.env.VITE_API_URL ||
-    (import.meta.env.DEV ? `http://${window.location.hostname}:8001` : '/api');
+const configuredApiUrl = import.meta.env.VITE_API_URL ||
+    (import.meta.env.DEV ? `http://${window.location.hostname}:8001/api` : '/api');
+export const API_URL = configuredApiUrl.replace(/\/+$/, '').endsWith('/api')
+    ? configuredApiUrl.replace(/\/+$/, '')
+    : `${configuredApiUrl.replace(/\/+$/, '')}/api`;
 // Create Axios instance
 // 120 s default — enough for a Render free-tier cold start (~30-90 s)
 export const apiClient = axios.create({
@@ -236,6 +239,7 @@ export const transformPost = (post) => {
         imageUrl: getFullUrl(rawMedia),
         mediaType,
         isReel,
+        views: post.views_count ?? post.views ?? 0,
         likes: post.likes_count || 0,
         comments: post.comments_count ?? post.comments?.length ?? 0,
         timestamp: createdAt ? createdAt.toLocaleDateString() : '',
@@ -545,7 +549,8 @@ export const api = {
         },
         view: async (id) => {
             try {
-                await apiClient.post(`/posts/${id}/view`);
+                const res = await apiClient.post(`/posts/${id}/view`);
+                return res.data;
             } catch {}
         },
         delete: async (id) => {
@@ -824,7 +829,13 @@ export const api = {
     chats: {
         getAll: async () => {
             const res = await apiClient.get('/conversations/');
-            return res.data.map(transformConversation);
+                const uniqueChats = new Map();
+                res.data.forEach((conversation) => {
+                    const chat = transformConversation(conversation);
+                    const partnerId = String(chat.partner?.id || chat.id);
+                    if (!uniqueChats.has(partnerId)) uniqueChats.set(partnerId, chat);
+                });
+                return Array.from(uniqueChats.values());
         },
         getMessages: async (conversationId) => {
             const res = await apiClient.get(`/conversations/${conversationId}/messages/`);
@@ -844,7 +855,9 @@ export const api = {
                     imageUrl = url;
             }
             if (audioBlob) {
-                const audioFile = new File([audioBlob], 'voice_note.webm', { type: 'audio/webm' });
+                const audioType = audioBlob.type || 'audio/webm';
+                const audioExtension = audioType.includes('wav') ? 'wav' : audioType.includes('ogg') ? 'ogg' : 'webm';
+                const audioFile = new File([audioBlob], `voice_note.${audioExtension}`, { type: audioType });
                 audioUrl = await uploadFile(audioFile);
             }
             // If backend drops audio_url, pass it to image_url as fallback

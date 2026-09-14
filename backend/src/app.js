@@ -24,7 +24,10 @@ import { messagesRouter } from './routes/messages.js';
 
 export const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false,
+}));
 app.use(
   cors({
     origin(origin, callback) {

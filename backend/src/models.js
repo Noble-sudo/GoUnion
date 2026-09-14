@@ -82,6 +82,17 @@ const commentSchema = new Schema(
 );
 commentSchema.index({ post_id: 1, created_at: 1 });
 
+const postViewSchema = new Schema(
+  {
+    id: { type: String, unique: true, default: makeId },
+    post_id: { type: String, required: true, index: true },
+    user_id: { type: String, required: true, index: true },
+    viewed_at: { type: Date, default: Date.now },
+  },
+  { versionKey: false },
+);
+postViewSchema.index({ post_id: 1, user_id: 1 }, { unique: true });
+
 const groupSchema = new Schema(
   {
     id: { type: String, unique: true, default: makeId, index: true },
@@ -125,6 +136,7 @@ const conversationSchema = new Schema(
     id: { type: String, unique: true, default: makeId, index: true },
     name: { type: String, default: null },
     participant_ids: { type: [String], default: [], index: true },
+    participant_key: { type: String, unique: true, sparse: true, index: true },
   },
   baseOptions,
 );
@@ -266,6 +278,7 @@ export const User = models.User || model('User', userSchema);
 export const Follow = models.Follow || model('Follow', followSchema);
 export const Post = models.Post || model('Post', postSchema);
 export const Comment = models.Comment || model('Comment', commentSchema);
+export const PostView = models.PostView || model('PostView', postViewSchema);
 export const Group = models.Group || model('Group', groupSchema);
 export const GroupMember = models.GroupMember || model('GroupMember', groupMemberSchema);
 export const GroupRequest = models.GroupRequest || model('GroupRequest', groupRequestSchema);

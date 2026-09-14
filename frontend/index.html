@@ -24,7 +24,7 @@
 
       // Force immediate Service Worker registration
       window.swError = null;
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && window.location.port !== '4271') {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js', { scope: '/' })
             .then(reg => {

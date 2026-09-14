@@ -2,12 +2,13 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, MessageCircle, Volume2, VolumeX, Share2, X, Music2, ArrowLeft } from "lucide-react";
+import { Heart, MessageCircle, Volume2, VolumeX, Share2, Download, X, Music2, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CommentSection } from "../components/feed/CommentSection";
 import { Avatar } from "../components/ui/Avatar";
 import { api } from "../services/api";
 import { useAuthStore } from "../store";
+import { saveVideoFile, shareVideoFile } from "../utils/videoShare";
 const isVideoUrl = (url) => {
     if (!url)
         return false;
@@ -80,15 +81,13 @@ export const SoundFeed = () => {
     const handleShare = async (reel) => {
         const url = `${window.location.origin}/post/${reel.id}`;
         try {
-            if (navigator.share) {
-                await navigator.share({ title: "GoUnion Sound Reel", url });
-            }
-            else {
-                await navigator.clipboard.writeText(url);
-                alert("Reel link copied!");
-            }
+            await shareVideoFile(reel.imageUrl, `gounion-reel-${reel.id}`, "GoUnion Sound Reel", `Shared from GoUnion by @${reel.author.username}`);
         }
-        catch (err) { }
+        catch (err) { window.alert("Unable to save this video. Please try again."); }
+    };
+    const handleSave = async (reel) => {
+        try { await saveVideoFile(reel.imageUrl, `gounion-reel-${reel.id}`); }
+        catch (err) { console.error("Error saving reel:", err); }
     };
     const getCleanCaption = (content) => {
         return content.replace(/(?:🎵 )?Sound:.*$/m, '').replace(/\[Overlay Text:.*\]/m, '').replace(/\[Sticker:.*\]/m, '').replace(/\[Mix:.*\]/m, '').trim();

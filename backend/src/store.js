@@ -8,6 +8,7 @@ import {
   Message,
   Notification,
   Post,
+  PostView,
   StoryLike,
   StoryView,
   User,
@@ -91,7 +92,10 @@ export const serializeComment = async (commentOrDoc, viewerId = null) => {
 export const serializePost = async (postOrDoc, viewerId = null) => {
   const post = toPlain(postOrDoc);
   if (!post) return null;
-  const commentsCount = await Comment.countDocuments({ post_id: post.id });
+  const [commentsCount, viewsCount] = await Promise.all([
+    Comment.countDocuments({ post_id: post.id }),
+    PostView.countDocuments({ post_id: post.id }),
+  ]);
   return {
     ...post,
     user: await publicUser(post.user_id, viewerId),
@@ -99,6 +103,7 @@ export const serializePost = async (postOrDoc, viewerId = null) => {
     likes: (post.likes || []).map((userId) => ({ id: userId })),
     likes_count: post.likes?.length || 0,
     comments_count: commentsCount,
+    views_count: viewsCount,
   };
 };
 

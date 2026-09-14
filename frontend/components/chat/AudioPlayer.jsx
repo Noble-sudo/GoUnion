@@ -8,7 +8,9 @@ export const AudioPlayer = ({ src, mine, senderAvatar, senderName }) => {
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
     const [playbackRate, setPlaybackRate] = useState(1);
+    const [playbackError, setPlaybackError] = useState(false);
     const audioRef = useRef(null);
+    const audioSrc = src ? `${src}${src.includes('?') ? '&' : '?'}audio=1` : src;
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -41,15 +43,27 @@ export const AudioPlayer = ({ src, mine, senderAvatar, senderName }) => {
         };
     }, []);
 
-    const togglePlay = () => {
+    useEffect(() => {
+        if (audioRef.current) audioRef.current.playbackRate = playbackRate;
+    }, [playbackRate]);
+
+    const togglePlay = async () => {
         if (audioRef.current) {
             if (isPlaying) {
                 audioRef.current.pause();
+                setIsPlaying(false);
             } else {
-                audioRef.current.play();
-                audioRef.current.playbackRate = playbackRate;
+                try {
+                    audioRef.current.playbackRate = playbackRate;
+                    await audioRef.current.play();
+                    setPlaybackError(false);
+                    setIsPlaying(true);
+                } catch (error) {
+                    console.error('Unable to play voice note:', error);
+                    setPlaybackError(true);
+                    setIsPlaying(false);
+                }
             }
-            setIsPlaying(!isPlaying);
         }
     };
 
@@ -90,7 +104,7 @@ export const AudioPlayer = ({ src, mine, senderAvatar, senderName }) => {
 
     return (
         <div className={`flex items-center gap-3 rounded-2xl p-3 min-w-[280px] max-w-[320px] shadow-sm select-none ${mine ? 'bg-black/5 border border-black/10 text-black' : 'bg-[#151518] border border-white/10 text-white'}`}>
-            <audio ref={audioRef} src={src} preload="metadata" />
+            <audio ref={audioRef} src={audioSrc} preload="metadata" />
             
             {/* Left: Avatar with mini badge */}
             <div className="relative shrink-0">
@@ -140,7 +154,7 @@ export const AudioPlayer = ({ src, mine, senderAvatar, senderName }) => {
 
                     {/* Speed Toggle */}
                     <button 
-                        onClick={togglePlaybackRate} 
+                        onClick={(event) => { event.stopPropagation(); togglePlaybackRate(); }} 
                         className={`text-[9px] font-black px-1.5 py-0.5 rounded border border-transparent transition-all select-none hover:scale-105 shrink-0 ${mine ? 'bg-black/10 border-black/10 hover:bg-black/20 text-black' : 'bg-white/5 border-white/10 hover:bg-white/15 text-white/90'}`}
                     >
                         {playbackRate}x
@@ -153,7 +167,7 @@ export const AudioPlayer = ({ src, mine, senderAvatar, senderName }) => {
                         {formatTime(audioRef.current?.currentTime || 0)}
                     </span>
                     <span className={mine ? 'text-black/60' : 'text-white/45'}>
-                        {formatTime(duration)}
+                        {playbackError ? 'Unavailable' : formatTime(duration)}
                     </span>
                 </div>
             </div>

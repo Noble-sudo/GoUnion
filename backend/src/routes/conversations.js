@@ -9,6 +9,7 @@ import { forbidden, notFound } from '../utils/httpError.js';
 export const conversationsRouter = Router();
 
 const hasParticipant = (conversation, userId) => conversation?.participant_ids.includes(userId);
+const participantKey = (participantIds) => [...new Set(participantIds.map(String))].sort().join(':');
 
 conversationsRouter.get(
   '/',
@@ -26,9 +27,22 @@ conversationsRouter.post(
   requireAuth,
   asyncHandler(async (req, res) => {
     const participantIds = Array.from(new Set([req.user.id, ...(req.body.participant_ids || []).map(String)]));
-    const existing = await Conversation.findOne({ participant_ids: { $all: participantIds, $size: participantIds.length } });
+    const key = participantKey(participantIds);
+    const existing = await Conversation.findOne({
+      $or: [
+        { participant_key: key },
+        { participant_ids: { $all: participantIds, $size: participantIds.length } },
+      ],
+    });
     if (existing) return res.json(await serializeConversation(existing, req.user.id));
-    const conversation = await Conversation.create({ name: req.body.name || null, participant_ids: participantIds });
+    let conversation;
+    try {
+      conversation = await Conversation.create({ name: req.body.name || null, participant_ids: participantIds, participant_key: key });
+    } catch (error) {
+      if (error?.code !== 11000) throw error;
+      conversation = await Conversation.findOne({ participant_key: key });
+      if (!conversation) throw error;
+    }
     
     res.status(201).json(await serializeConversation(conversation, req.user.id));
   }),

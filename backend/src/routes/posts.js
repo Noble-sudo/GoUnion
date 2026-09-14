@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Comment, Post, Group, GroupMember } from '../models.js';
+import { Comment, Post, PostView, Group, GroupMember } from '../models.js';
 import { addNotification, serializeComment, serializePost } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -134,7 +134,13 @@ postsRouter.post(
   '/:id/view',
   requireAuth,
   asyncHandler(async (req, res) => {
-    // Frontend hits this to track views, returning 200 OK
-    res.json({ status: 'ok' });
+    const post = await Post.findOne({ id: req.params.id });
+    if (!post) throw notFound('Post not found.');
+    await PostView.updateOne(
+      { post_id: post.id, user_id: req.user.id },
+      { $setOnInsert: { post_id: post.id, user_id: req.user.id } },
+      { upsert: true },
+    );
+    res.json({ status: 'viewed', views_count: await PostView.countDocuments({ post_id: post.id }) });
   }),
 );
