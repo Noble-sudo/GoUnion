@@ -1,16 +1,21 @@
 import { Router } from 'express';
 import { Notification, PushSubscription } from '../models.js';
 import { serializeNotification } from '../store.js';
+import { env } from '../config/env.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const notificationsRouter = Router();
 
+notificationsRouter.get('/vapid-public-key', (_req, res) => {
+  res.json({ publicKey: env.vapidPublicKey || null });
+});
+
 notificationsRouter.get(
   '/',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const notifications = await Notification.find({ user_id: req.user.id }).sort({ created_at: -1 }).limit(100);
+    const notifications = await Notification.find({ user_id: req.user.id, type: { $ne: "new_message" } }).sort({ created_at: -1 }).limit(100);
     res.json(await Promise.all(notifications.map((item) => serializeNotification(item, req.user.id))));
   }),
 );
@@ -19,7 +24,7 @@ notificationsRouter.get(
   '/unread-count',
   requireAuth,
   asyncHandler(async (req, res) => {
-    res.json({ count: await Notification.countDocuments({ user_id: req.user.id, is_read: false }) });
+    res.json({ count: await Notification.countDocuments({ user_id: req.user.id, is_read: false, type: { $ne: "new_message" } }) });
   }),
 );
 

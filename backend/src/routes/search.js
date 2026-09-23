@@ -3,6 +3,7 @@ import { Group, Post, User } from '../models.js';
 import { publicUser, serializeGroup, serializePost } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { institutionScopedQuery } from '../utils/institutionScope.js';
 
 export const searchRouter = Router();
 
@@ -13,10 +14,10 @@ searchRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const q = regex(req.query.q);
-    const users = await User.find({
-      id: { $ne: req.user.id },
-      $or: [{ username: q }, { email: q }, { 'profile.full_name': q }],
-    }).limit(50);
+    const users = await User.find(institutionScopedQuery(req.user, {
+        id: { $ne: req.user.id },
+        $or: [{ username: q }, { email: q }, { 'profile.full_name': q }],
+      })).limit(50);
     res.json(await Promise.all(users.map((user) => publicUser(user, req.user.id))));
   }),
 );
@@ -25,7 +26,7 @@ searchRouter.get(
   '/posts',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const posts = await Post.find({ caption: regex(req.query.q) }).sort({ created_at: -1 }).limit(50);
+    const posts = await Post.find(institutionScopedQuery(req.user, { caption: regex(req.query.q), is_taken_down: { $ne: true } })).sort({ created_at: -1 }).limit(50);
     res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
   }),
 );
@@ -35,7 +36,7 @@ searchRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const q = regex(req.query.q);
-    const groups = await Group.find({ $or: [{ name: q }, { description: q }] }).limit(50);
+    const groups = await Group.find(institutionScopedQuery(req.user, { is_active: true, $or: [{ name: q }, { description: q }] })).limit(50);
     res.json(await Promise.all(groups.map((group) => serializeGroup(group, req.user.id))));
   }),
 );

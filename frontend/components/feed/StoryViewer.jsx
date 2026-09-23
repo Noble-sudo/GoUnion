@@ -1,5 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useEffect, useState } from "react";
+import { useToast } from "../ui/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, Eye, Share2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -130,7 +131,7 @@ export const StoryViewer = ({ isOpen, onClose, stories, currentUser, }) => {
             }
             else {
                 await navigator.clipboard.writeText(`${text}\n${url}`);
-                alert("Story link copied!");
+                toast.error("Story link copied!");
             }
         }
         catch (err) { }

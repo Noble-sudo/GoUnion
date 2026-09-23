@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <title>GoUnion | The Student Network</title>
-    <link rel="icon" type="image/png" href="/favicon.png">
+    <title>Reconnected</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="manifest" href="/manifest.webmanifest">
     <script>
       window.deferredPWAInstallPrompt = null;
@@ -24,7 +24,7 @@
 
       // Force immediate Service Worker registration
       window.swError = null;
-      if ('serviceWorker' in navigator && window.location.port !== '4271') {
+      if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js', { scope: '/' })
             .then(reg => {

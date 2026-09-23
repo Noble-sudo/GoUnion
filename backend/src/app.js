@@ -20,6 +20,8 @@ import { reportsRouter } from './routes/reports.js';
 import { searchRouter } from './routes/search.js';
 import { storiesRouter } from './routes/stories.js';
 import { usersRouter } from './routes/users.js';
+import { institutionsRouter } from './routes/institutions.js';
+import { identitiesRouter } from './routes/identities.js';
 import { messagesRouter } from './routes/messages.js';
 
 export const app = express();
@@ -74,6 +76,8 @@ apiRouter.get('/health', (_req, res) => {
 apiRouter.use(authRouter);
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/users', usersRouter);
+apiRouter.use('/institutions', institutionsRouter);
+apiRouter.use('/identities', identitiesRouter);
 apiRouter.use('/profiles', profilesRouter);
 apiRouter.use('/posts', postsRouter);
 apiRouter.use('/comments', commentsRouter);

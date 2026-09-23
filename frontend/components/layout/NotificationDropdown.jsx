@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Bell, Heart, MessageCircle, UserPlus, X } from "lucide-react";
+import { Bell, Heart, MessageCircle, UserPlus, X, Eye } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
 export const NotificationDropdown = ({ notifications, onClose, onMarkRead, onItemClick, }) => {
     const navigate = useNavigate();

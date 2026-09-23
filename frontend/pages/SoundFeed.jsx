@@ -83,7 +83,7 @@ export const SoundFeed = () => {
         try {
             await shareVideoFile(reel.imageUrl, `gounion-reel-${reel.id}`, "GoUnion Sound Reel", `Shared from GoUnion by @${reel.author.username}`);
         }
-        catch (err) { window.alert("Unable to save this video. Please try again."); }
+        catch (err) { toast.error("Unable to save this video. Please try again."); }
     };
     const handleSave = async (reel) => {
         try { await saveVideoFile(reel.imageUrl, `gounion-reel-${reel.id}`); }

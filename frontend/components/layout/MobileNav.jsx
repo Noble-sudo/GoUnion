@@ -1,12 +1,13 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Users, MessageSquare, User, Compass, GraduationCap, ShieldCheck, Settings, LogOut, X, Bell, UserPlus } from "lucide-react";
+import { Home, Users, MessageSquare, User, Compass, ShoppingBag, ShieldCheck, Settings, LogOut, X, Bell, UserPlus } from "lucide-react";
 import { useAuthStore } from "../../store";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { InviteModal } from "../ui/InviteModal";
+import { isAdminEmail } from "../../config/admins";
 
 export const MobileNav = () => {
     const location = useLocation();
@@ -31,8 +32,8 @@ export const MobileNav = () => {
     const unreadChatsCount = chatsData?.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0) || 0;
 
     const NAV_LEFT = [
-        { icon: Home, label: "Feed", path: "/" },
-        { icon: Compass, label: "Goto", path: "/goto" },
+        { icon: Home, label: "Pulse", path: "/" },
+        { icon: Compass, label: "Konnect", path: "/konnect" },
     ];
 
     const NAV_RIGHT = [
@@ -41,11 +42,11 @@ export const MobileNav = () => {
     ];
 
     const OTHER_ITEMS = [
-        { icon: Bell, label: "Alerts", path: "/notifications", badge: unreadCount },
-        { icon: Users, label: "Groups", path: "/groups" },
+        { icon: Bell, label: "Signals", path: "/notifications", badge: unreadCount },
+        { icon: Users, label: "Circles", path: "/groups" },
         { icon: UserPlus, label: "Invite", path: "#invite" },
-        { icon: GraduationCap, label: "Alumni", path: "/alumni" },
-        ...((user?.role === "admin" || user?.role === "moderator" || user?.email === "ezeilodavid292@gmail.com" || localStorage.getItem('login_email') === "ezeilodavid292@gmail.com")
+        { icon: ShoppingBag, label: "Teaky", path: "/teaky" },
+        ...((user?.role === "admin" || user?.role === "moderator" || isAdminEmail(user?.email))
             ? [{ icon: ShieldCheck, label: "Admin Panel", path: "/admin" }]
             : []),
         { icon: Settings, label: "Settings", path: "/settings" },
@@ -54,7 +55,7 @@ export const MobileNav = () => {
     const renderNavItem = (item) => (
         <NavLink key={item.path} to={item.path} onClick={() => {
             if (location.pathname === "/" && item.path === "/") window.dispatchEvent(new Event("gounion-refresh-feed"));
-            if (location.pathname === "/goto" && item.path === "/goto") window.dispatchEvent(new Event("gounion-refresh-goto"));
+            if (location.pathname === "/konnect" && item.path === "/konnect") window.dispatchEvent(new Event("gounion-refresh-goto"));
         }} className={({ isActive }) => `relative flex flex-col items-center justify-center h-full flex-1 transition-all duration-300 ${isActive ? "text-primary" : "text-white/40 hover:text-white/80"}`}>
             {({ isActive }) => (
                 <>
@@ -82,7 +83,7 @@ export const MobileNav = () => {
 
                 <div className="relative -top-5 px-2">
                     <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="relative flex items-center justify-center w-14 h-14 rounded-full bg-primary text-black font-serif font-black text-2xl shadow-[0_4px_20px_rgba(196,255,14,0.4)] transition-transform hover:scale-105 active:scale-95 z-[165]">
-                        G
+                        R
                         {unreadCount > 0 && (
                             <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-[#050505]" />
                         )}
@@ -120,10 +121,6 @@ export const MobileNav = () => {
                                             <Link
                                                 to={item.path}
                                                 onClick={(e) => {
-                                                    if (item.label === "Alumni") {
-                                                        e.preventDefault();
-                                                        return;
-                                                    }
                                                     if (item.label === "Invite") {
                                                         e.preventDefault();
                                                         setIsMenuOpen(false);
@@ -132,16 +129,16 @@ export const MobileNav = () => {
                                                     }
                                                     setIsMenuOpen(false);
                                                 }}
-                                                className={`flex items-center justify-center w-[52px] h-[52px] bg-[#111114]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.8)] transition-transform hover:scale-110 relative ${item.label === "Alumni" ? "opacity-80 cursor-not-allowed border-dashed border-white/30" : "hover:bg-white/10"}`}
+                                                className="flex items-center justify-center w-[52px] h-[52px] bg-[#111114]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.8)] transition-transform hover:scale-110 relative hover:bg-white/10"
                                             >
-                                                <item.icon className={`w-6 h-6 ${item.label === "Alumni" ? "text-white/40" : "text-white"}`} />
+                                                <item.icon className="w-6 h-6 text-white" />
                                                 {item.badge > 0 && (
                                                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
                                                         {item.badge > 99 ? '99+' : item.badge}
                                                     </span>
                                                 )}
-                                                {item.label === "Alumni" && (
-                                                    <span className="absolute -top-3 bg-primary text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(196,255,14,0.4)] whitespace-nowrap z-10 border border-black">
+                                                {item.label === "Teaky" && (
+                                                    <span className="absolute -top-3 bg-[var(--rc-teaky)] text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(104,212,255,0.35)] whitespace-nowrap z-10 border border-black">
                                                         Coming Soon
                                                     </span>
                                                 )}

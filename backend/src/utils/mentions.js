@@ -16,11 +16,14 @@ export const extractMentions = (text) => {
 /**
  * Finds users by username and creates a notification for each.
  */
-export const notifyMentions = async ({ text, senderId, postId, commentId = null }) => {
+export const notifyMentions = async ({ text, senderId, postId = null, commentId = null, groupId = null, message = null }) => {
   const usernames = extractMentions(text);
   if (usernames.length === 0) return;
 
-  const users = await User.find({ username: { $in: usernames } });
+  const escapedUsernames = usernames.map((username) => username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const users = await User.find({
+    username: { $in: escapedUsernames.map((username) => new RegExp(`^${username}$`, 'i')) },
+  });
   
   for (const user of users) {
     if (String(user.id) === String(senderId)) continue; // Don't notify self
@@ -30,7 +33,9 @@ export const notifyMentions = async ({ text, senderId, postId, commentId = null 
       sender_id: senderId,
       type: 'mention',
       post_id: postId,
-      comment_id: commentId
+      comment_id: commentId,
+      group_id: groupId,
+      message,
     });
   }
 };

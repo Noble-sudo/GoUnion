@@ -1,13 +1,13 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { Router } from 'express';
-import { EmailVerificationToken, Follow, PendingSignup, Post, User } from '../models.js';
+import { Follow, PendingSignup, Post, User } from '../models.js';
 import { addNotification, publicUser, serializePost } from '../store.js';
-import { env } from '../config/env.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { HttpError, notFound } from '../utils/httpError.js';
 import { sendOtpEmail } from '../services/mail.js';
+import { assertSameInstitution, institutionScopedQuery, resolveInstitutionSelection } from '../utils/institutionScope.js';
 
 const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 const hashOtp = (otp) => crypto.createHash('sha256').update(otp).digest('hex');
@@ -26,7 +26,7 @@ usersRouter.post(
 
     const password_hash = await bcrypt.hash(password, 10);
     const otp = generateOtp();
-
+    
     // Upsert: resubmitting the form (e.g. OTP never arrived) just resets the code
     // instead of creating duplicate pending entries.
     await PendingSignup.findOneAndUpdate(
@@ -36,6 +36,7 @@ usersRouter.post(
         username,
         password_hash,
         full_name: full_name || username,
+        
         otp_hash: hashOtp(otp),
         expires_at: new Date(Date.now() + 15 * 60 * 1000),
       },
@@ -79,6 +80,9 @@ usersRouter.put(
 
     const allowed = ['bio', 'university', 'profile_picture', 'cover_photo', 'course', 'hometown', 'full_name'];
     for (const key of allowed) if (req.body[key] !== undefined) req.user.profile[key] = req.body[key];
+    if (req.body.university !== undefined) {
+      req.user.profile.university = req.body.university;
+    }
     await req.user.save();
     res.json(await publicUser(req.user, req.user.id));
   }),
@@ -89,7 +93,9 @@ usersRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const limit = Number(req.query.limit || 50);
-    const users = await User.find({ id: { $ne: req.user.id } }).limit(limit).sort({ created_at: -1 });
+    const users = await User.find(institutionScopedQuery(req.user, {
+        id: { $ne: req.user.id },
+      })).limit(limit).sort({ created_at: -1 });
     res.json(await Promise.all(users.map((user) => publicUser(user, req.user.id))));
   }),
 );
@@ -98,7 +104,10 @@ usersRouter.get(
   '/:id/posts',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const posts = await Post.find({ user_id: req.params.id, is_taken_down: { $ne: true } }).sort({ created_at: -1 }).limit(Number(req.query.limit || 50));
+    const target = await User.findOne({ id: req.params.id });
+    if (!target) throw notFound('User not found.');
+    assertSameInstitution(target, req.user, 'Profile');
+    const posts = await Post.find(institutionScopedQuery(req.user, { user_id: req.params.id, is_taken_down: { $ne: true } })).sort({ created_at: -1 }).limit(Number(req.query.limit || 50));
     res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
   }),
 );
@@ -109,6 +118,7 @@ usersRouter.post(
   asyncHandler(async (req, res) => {
     const target = await User.findOne({ id: req.params.id });
     if (!target) throw notFound('User not found.');
+    assertSameInstitution(target, req.user, 'Profile');
     if (target.id !== req.user.id) {
       await Follow.updateOne({ follower_id: req.user.id, following_id: target.id }, { $setOnInsert: { follower_id: req.user.id, following_id: target.id } }, { upsert: true });
       await addNotification({ user_id: target.id, sender_id: req.user.id, type: 'follow' });
@@ -131,7 +141,10 @@ usersRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const follows = await Follow.find({ follower_id: req.params.id }).lean();
-    const users = await User.find({ id: { $in: follows.map((follow) => follow.following_id) } });
+    const users = await User.find({
+      id: { $in: follows.map((follow) => follow.following_id) },
+      institution_id: req.user.institution_id || { $in: [null, ''] },
+    });
     res.json(await Promise.all(users.map((user) => publicUser(user, req.user.id))));
   }),
 );
@@ -141,7 +154,70 @@ usersRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const follows = await Follow.find({ following_id: req.params.id }).lean();
-    const users = await User.find({ id: { $in: follows.map((follow) => follow.follower_id) } });
+    const users = await User.find({
+      id: { $in: follows.map((follow) => follow.follower_id) },
+      institution_id: req.user.institution_id || { $in: [null, ''] },
+    });
     res.json(await Promise.all(users.map((user) => publicUser(user, req.user.id))));
+  }),
+);
+
+
+usersRouter.put(
+  '/me/settings',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (!req.user.settings) {
+      req.user.settings = {};
+    }
+    const allowedSettings = [
+      'email_notifications', 'push_notifications', 'marketing_emails', 'dark_mode', 
+      'private_account', 'read_receipts', 'show_online_status', 'show_last_seen',
+      'allow_messages_anyone', 'show_in_suggestions', 'new_followers', 
+      'direct_messages', 'post_likes', 'post_comments', 'mentions'
+    ];
+    for (const key of allowedSettings) {
+      if (req.body[key] !== undefined) {
+        req.user.settings[key] = req.body[key];
+      }
+    }
+    await req.user.save();
+    res.json(await publicUser(req.user, req.user.id));
+  }),
+);
+
+usersRouter.post(
+  '/:id/block',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const target = await User.findOne({ id: req.params.id });
+    if (!target) throw notFound('User not found.');
+    if (target.id === req.user.id) throw new HttpError(400, 'You cannot block yourself.');
+    
+    if (!req.user.blocked_users.includes(target.id)) {
+      req.user.blocked_users.push(target.id);
+      await req.user.save();
+    }
+    
+    // Also remove from following/followers
+    await Follow.deleteMany({
+      $or: [
+        { follower_id: req.user.id, following_id: target.id },
+        { follower_id: target.id, following_id: req.user.id }
+      ]
+    });
+    
+    res.json({ status: 'blocked', user: await publicUser(target, req.user.id) });
+  }),
+);
+
+usersRouter.post(
+  '/:id/unblock',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const targetId = String(req.params.id);
+    req.user.blocked_users = req.user.blocked_users.filter(id => id !== targetId);
+    await req.user.save();
+    res.json({ status: 'unblocked' });
   }),
 );

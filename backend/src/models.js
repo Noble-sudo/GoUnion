@@ -24,22 +24,104 @@ const baseOptions = {
   versionKey: false,
 };
 
+const studentIdentitySchema = new Schema(
+  {
+    id: { type: String, unique: true, default: makeId, index: true },
+    user_id: { type: String, required: true, index: true },
+    institution_id: { type: String, required: true, index: true },
+    identifier: { type: String, default: null }, // e.g. email or matric number
+    method: { type: String, required: true, enum: ['institutional_email', 'manual', 'legacy', 'student_portal'] },
+    status: { type: String, required: true, enum: ['UNVERIFIED', 'PENDING', 'VERIFIED', 'REJECTED', 'REVOKED', 'LEGACY_UNVERIFIED'] },
+    verification_data: { type: Schema.Types.Mixed, default: {} },
+    verified_at: { type: Date, default: null },
+    rejection_reason: { type: String, default: null },
+    needs_audit: { type: Boolean, default: false },
+    ai_confidence_score: { type: Number, default: null },
+  },
+  baseOptions,
+);
+// Ensure we don't have multiple people claiming the same exact verified identifier at the same institution
+studentIdentitySchema.index(
+  { institution_id: 1, identifier: 1 },
+  { unique: true, partialFilterExpression: { identifier: { $type: "string" } } }
+);
+
 const userSchema = new Schema(
   {
     id: { type: String, unique: true, default: makeId, index: true },
     username: { type: String, unique: true, required: true, trim: true, index: true },
     email: { type: String, unique: true, required: true, lowercase: true, trim: true, index: true },
     password_hash: { type: String, required: true },
+    
     is_active: { type: Boolean, default: true },
+    suspension_reason: { type: String, default: null },
+    appeal_status: { type: String, enum: ['none', 'pending', 'resolved', 'rejected'], default: 'none' },
+    appeal_text: { type: String, default: null },
+
     is_online: { type: Boolean, default: false },
     last_seen: { type: Date, default: null },
     email_verified: { type: Boolean, default: false },
     role: { type: String, enum: ['user', 'moderator', 'admin'], default: 'user' },
-    profile: { type: profileSchema, default: () => ({}) },
+    active_identity_id: { type: String, default: null, index: true },
+    institution_id: { type: String, default: null, index: true },
+      profile: { type: profileSchema, default: () => ({}) },
+      settings: {
+        email_notifications: { type: Boolean, default: true },
+        push_notifications: { type: Boolean, default: true },
+        marketing_emails: { type: Boolean, default: false },
+        dark_mode: { type: Boolean, default: true },
+        private_account: { type: Boolean, default: false },
+        read_receipts: { type: Boolean, default: true },
+        show_online_status: { type: Boolean, default: true },
+        show_last_seen: { type: Boolean, default: true },
+        allow_messages_anyone: { type: Boolean, default: true },
+        show_in_suggestions: { type: Boolean, default: true },
+        new_followers: { type: Boolean, default: true },
+        direct_messages: { type: Boolean, default: true },
+        post_likes: { type: Boolean, default: true },
+        post_comments: { type: Boolean, default: true },
+        mentions: { type: Boolean, default: true }
+      },
+      blocked_users: [{ type: String, ref: 'User' }],
+      muted_conversations: [{ type: String, ref: 'Conversation' }],
+      is_banned: { type: Boolean, default: false },
+      ban_reason: { type: String, default: null },
   },
   baseOptions,
 );
 userSchema.index({ created_at: -1 });
+
+
+const institutionSchema = new Schema(
+  {
+    id: { type: String, unique: true, default: makeId, index: true },
+    slug: { type: String, unique: true, index: true },
+    name: { type: String, required: true },
+    status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+    verification_enabled: { type: Boolean, default: true },
+    verification_methods: { type: [String], default: ['institutional_email', 'manual'] },
+    email_domains: { type: [String], default: [] },
+  },
+  baseOptions,
+);
+
+const campusXPSchema = new Schema(
+  {
+    id: { type: String, unique: true, default: makeId, index: true },
+    user_id: { type: String, required: true, index: true },
+    xp: { type: Number, default: 0 },
+  },
+  baseOptions,
+);
+
+const campusStreakSchema = new Schema(
+  {
+    id: { type: String, unique: true, default: makeId, index: true },
+    user_id: { type: String, required: true, index: true },
+    streak: { type: Number, default: 0 },
+  },
+  baseOptions,
+);
 
 const followSchema = new Schema(
   {
@@ -100,7 +182,9 @@ const groupSchema = new Schema(
     description: { type: String, default: '' },
     cover_image: { type: String, default: null },
     privacy: { type: String, enum: ['public', 'private', 'secret'], default: 'public' },
+      category: { type: String, default: 'Other' },
     creator_id: { type: String, required: true, index: true },
+    institution_id: { type: String, default: null, index: true },
     is_active: { type: Boolean, default: true },
     admins_only_chat: { type: Boolean, default: false },
   },
@@ -136,6 +220,7 @@ const conversationSchema = new Schema(
     id: { type: String, unique: true, default: makeId, index: true },
     name: { type: String, default: null },
     participant_ids: { type: [String], default: [], index: true },
+    group_id: { type: String, default: null, index: true },
     participant_key: { type: String, unique: true, sparse: true, index: true },
   },
   baseOptions,
@@ -155,6 +240,9 @@ const messageSchema = new Schema(
     sticker_id: { type: String, default: null },
     is_read: { type: Boolean, default: false },
     is_deleted: { type: Boolean, default: false },
+    is_forwarded: { type: Boolean, default: false },
+    reply_to_id: { type: String, default: null },
+    seen_by: { type: [{ user_id: { type: String, required: true }, seen_at: { type: Date, default: Date.now } }], default: [] },
   },
   baseOptions,
 );
@@ -274,6 +362,27 @@ const pendingSignupSchema = new Schema(
 export const PendingSignup = models.PendingSignup || model('PendingSignup', pendingSignupSchema);
 
 export const OtpToken = models.OtpToken || model('OtpToken', otpTokenSchema);
+export const Institution = models.Institution || model('Institution', institutionSchema);
+export const CampusXP = models.CampusXP || model('CampusXP', campusXPSchema);
+export const CampusStreak = models.CampusStreak || model('CampusStreak', campusStreakSchema);
+
+const groupEventSchema = new Schema(
+  {
+    id: { type: String, unique: true, default: makeId, index: true },
+    group_id: { type: String, required: true, index: true },
+    creator_id: { type: String, required: true },
+    title: { type: String, required: true },
+    description: { type: String, default: '' },
+    location: { type: String, default: '' },
+    start_time: { type: Date, required: true },
+    end_time: { type: Date, default: null },
+    cover_image: { type: String, default: null },
+    attendees: [{ type: String }],
+  },
+  { versionKey: false }
+);
+
+export const StudentIdentity = models.StudentIdentity || model('StudentIdentity', studentIdentitySchema);
 export const User = models.User || model('User', userSchema);
 export const Follow = models.Follow || model('Follow', followSchema);
 export const Post = models.Post || model('Post', postSchema);
@@ -281,6 +390,7 @@ export const Comment = models.Comment || model('Comment', commentSchema);
 export const PostView = models.PostView || model('PostView', postViewSchema);
 export const Group = models.Group || model('Group', groupSchema);
 export const GroupMember = models.GroupMember || model('GroupMember', groupMemberSchema);
+export const GroupEvent = models.GroupEvent || model('GroupEvent', groupEventSchema);
 export const GroupRequest = models.GroupRequest || model('GroupRequest', groupRequestSchema);
 export const Conversation = models.Conversation || model('Conversation', conversationSchema);
 export const Message = models.Message || model('Message', messageSchema);

@@ -23,7 +23,7 @@ export const useAuthStore = create((set) => {
             authStorage.setItem('access_token', token);
             authStorage.setItem('user_data', JSON.stringify(user));
             authStorage.setItem('user_id', user.id);
-            localStorage.setItem('returning_user', 'true');
+            
             if (user.email) {
                 localStorage.setItem('login_email', user.email);
             }

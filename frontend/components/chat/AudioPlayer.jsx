@@ -106,17 +106,7 @@ export const AudioPlayer = ({ src, mine, senderAvatar, senderName }) => {
         <div className={`flex items-center gap-3 rounded-2xl p-3 min-w-[280px] max-w-[320px] shadow-sm select-none ${mine ? 'bg-black/5 border border-black/10 text-black' : 'bg-[#151518] border border-white/10 text-white'}`}>
             <audio ref={audioRef} src={audioSrc} preload="metadata" />
             
-            {/* Left: Avatar with mini badge */}
-            <div className="relative shrink-0">
-                <Avatar 
-                    src={senderAvatar} 
-                    label={senderName || "User"} 
-                    className="w-10 h-10 rounded-full border border-white/10 object-cover" 
-                />
-                <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 ${mine ? 'border-primary bg-black' : 'border-[#151518] bg-primary'}`}>
-                    <Mic size={10} className={mine ? "text-primary" : "text-black"} />
-                </div>
-            </div>
+
 
             {/* Center / Right Content */}
             <div className="flex-1 flex flex-col gap-1.5 min-w-0">

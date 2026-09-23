@@ -11,6 +11,8 @@ import { HttpError, unauthorized } from '../utils/httpError.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/tokens.js';
 import { sendOtpEmail, sendPasswordResetEmail } from '../services/mail.js';
 import { createOpaqueToken, hashOpaqueToken } from '../services/tokens.js';
+import { isAdminEmail } from '../config/admins.js';
+import { resolveInstitutionSelection } from '../utils/institutionScope.js';
 
 const form = multer();
 export const authRouter = Router();
@@ -48,14 +50,34 @@ authRouter.post(
     const emailOrUsername = String(req.body.username || '').toLowerCase();
     const user = await User.findOne({ $or: [{ email: emailOrUsername }, { username: req.body.username }] });
     if (!user || !(await bcrypt.compare(req.body.password || '', user.password_hash))) throw unauthorized('Incorrect username or password.');
-    if (!user.is_active) throw new HttpError(403, 'Your account has been suspended.');
+    if (!user.is_active) { return res.status(403).json({ error: 'Your account has been suspended.', is_suspended: true, suspension_reason: user.suspension_reason || 'Violation of community guidelines.', appeal_status: user.appeal_status || 'none', user_id: user.id, email: user.email }); }
     if (!user.email_verified) throw new HttpError(403, 'Verify your email address.');
     res.json(await issueTokens(user));
   }),
 );
 
-authRouter.post(
-  '/refresh',
+
+authRouter.post('/appeal', asyncHandler(async (req, res) => {
+    const { email, password, appeal_text } = req.body;
+    const User = (await import('../models.js')).User;
+    
+    const user = await User.findOne({ email: String(email || '').toLowerCase() });
+    if (!user || !(await bcrypt.compare(password || '', user.password_hash))) {
+        return res.status(401).json({ error: 'Incorrect email or password.' });
+    }
+    if (user.is_active) {
+        return res.status(400).json({ error: 'User is not suspended.' });
+    }
+    if (user.appeal_status === 'pending') {
+        return res.status(400).json({ error: 'You already have a pending appeal.' });
+    }
+    user.appeal_status = 'pending';
+    user.appeal_text = appeal_text;
+    await user.save();
+    res.json({ message: 'Appeal submitted successfully.' });
+}));
+
+authRouter.post('/refresh',
   asyncHandler(async (req, res) => {
     const token = req.body.refresh_token;
     const stored = token ? await RefreshToken.findOne({ token }) : null;
@@ -144,13 +166,15 @@ authRouter.post(
       throw new HttpError(409, 'That username was taken while your signup was pending. Please register again with a different username.');
     }
 
+    
     const user = await User.create({
+      
       username: pending.username,
       email: pending.email,
       password_hash: pending.password_hash,
       is_active: true,
       email_verified: true,
-      role: pending.email === 'ezeilodavid292@gmail.com' ? 'admin' : 'user',
+      role: isAdminEmail(pending.email) ? 'admin' : 'user',
       profile: { full_name: pending.full_name, university: 'University Student' },
     });
     user.profile.user_id = user.id;

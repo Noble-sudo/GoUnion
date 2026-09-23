@@ -26,3 +26,8 @@ npm-debug.log*
 *.keystore
 .git-old-backup/
 .get-old-backup/
+
+
+
+backend/uploads/
+frontend/dev-dist/

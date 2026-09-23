@@ -1,4 +1,4 @@
-import { User } from '../models.js';
+import { User, StudentIdentity } from '../models.js';
 import { forbidden, unauthorized } from '../utils/httpError.js';
 import { verifyAccessToken } from '../utils/tokens.js';
 
@@ -13,9 +13,22 @@ export const requireAuth = async (req, _res, next) => {
     const user = await User.findOne({ id: payload.sub });
     if (!user) return next(unauthorized('User no longer exists.'));
     if (!user.is_active) return next(forbidden('Your account has been suspended.'));
+    
+    // Attach user to req
     req.user = user;
+
+    // Load active campus identity
+    if (user.active_identity_id) {
+      const identity = await StudentIdentity.findOne({ id: user.active_identity_id }).lean();
+      if (identity && ['VERIFIED', 'LEGACY_UNVERIFIED'].includes(identity.status)) {
+        req.user.institution_id = identity.institution_id;
+      } else {
+        req.user.institution_id = null;
+      }
+    }
+
     return next();
-  } catch {
+  } catch (err) {
     return next(unauthorized('Invalid or expired token.'));
   }
 };

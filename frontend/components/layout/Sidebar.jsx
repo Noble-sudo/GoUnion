@@ -1,78 +1,123 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Compass, Users, MessageSquare, GraduationCap, User, Settings, LogOut, Search, ShieldCheck, Bell, UserPlus } from "lucide-react";
+import { Bell, Compass, Home, LogOut, MessageSquare, Search, Settings, ShieldCheck, ShoppingBag, User, UserPlus, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { api } from "../../services/api";
 import { useAuthStore } from "../../store";
-import { motion } from "framer-motion";
 import { Avatar } from "../ui/Avatar";
 import { InviteModal } from "../ui/InviteModal";
+import { isAdminEmail } from "../../config/admins";
 
-const NAV_ITEMS = [
-    { icon: Home, label: "Home", path: "/" },
-    { icon: Compass, label: "Goto", path: "/goto" },
-    { icon: Users, label: "Groups", path: "/groups" },
-    { icon: MessageSquare, label: "Messages", path: "/messages" },
-    { icon: Bell, label: "Notifications", path: "/notifications" },
-    { icon: GraduationCap, label: "Alumni", path: "/alumni", comingSoon: true },
+const mainNav = [
+  { icon: Home, label: "GoUnion", sub: "My Campus", path: "/" },
+  { icon: Compass, label: "Konnect", sub: "Beyond Campus", path: "/konnect" },
+  { icon: MessageSquare, label: "Messages", path: "/messages", badge: "messages" },
+  { icon: Bell, label: "Signals", path: "/notifications", badge: "notifications" },
 ];
+
 export const Sidebar = () => {
-    const { user, logout } = useAuthStore();
-    const location = useLocation();
-    const navigate = useNavigate();
-    const [isInviteOpen, setIsInviteOpen] = useState(false);
-    const { data: unreadData } = useQuery({
-        queryKey: ['notifications-unread'],
-        queryFn: api.notifications.getUnreadCount,
-    });
-    const unreadCount = unreadData?.count || 0;
-    const { data: chatsData } = useQuery({
-        queryKey: ['chats'],
-        queryFn: api.chats.getAll,
-        enabled: !!user,
-        staleTime: 30000,
-    });
-    const unreadChatsCount = chatsData?.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0) || 0;
-    return (_jsxs(motion.aside, { initial: { x: -20, opacity: 0 }, animate: { x: 0, opacity: 1 }, transition: { duration: 0.5 }, className: "fixed left-0 top-0 h-screen w-64 border-r border-white/5 bg-black/40 backdrop-blur-3xl hidden md:flex flex-col z-40", children: [_jsx("div", { className: "p-6", children: _jsxs(Link, { to: "/", className: "flex items-center gap-3 group", children: [_jsx("div", { className: "w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-serif font-bold text-xl transition-transform group-hover:scale-105", children: "G" }), _jsx("span", { className: "font-serif text-2xl tracking-tight text-white", children: "GoUnion" })] }) }), _jsx("div", { className: "px-4 pb-6", children: _jsxs("div", { className: "relative group", children: [_jsx(Search, { className: "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-white transition-colors" }), _jsx("input", { type: "text", placeholder: "Search GoUnion...", className: "w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-white/20 transition-all" })] }) }), _jsxs("nav", { className: "flex-1 px-4 space-y-1", children: [NAV_ITEMS.map((item) => {
-                        const isActive = location.pathname === item.path;
-                        const isComingSoon = item.comingSoon;
-                        return (_jsxs(NavLink, { to: isComingSoon ? "#" : item.path, onClick: (e) => {
-                                if (isComingSoon) {
-                                    e.preventDefault();
-                                    return;
-                                }
-                                if (location.pathname === "/" && item.path === "/") {
-                                    window.dispatchEvent(new Event("gounion-refresh-feed"));
-                                }
-                                if (location.pathname === "/goto" && item.path === "/goto") {
-                                    window.dispatchEvent(new Event("gounion-refresh-goto"));
-                                }
-                            }, className: `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
-                ${isActive && !isComingSoon
-                                ? "bg-gradient-to-r from-white/10 to-white/5 text-white border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                                : isComingSoon
-                                    ? "text-white/30 cursor-not-allowed border border-transparent"
-                                    : "text-white/60 hover:bg-white/5 hover:text-white border border-transparent"}
-              `, children: [_jsx(item.icon, { className: `w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${isActive && !isComingSoon ? "text-white" : "text-white/60"}` }), item.label, isComingSoon && (_jsx("span", { className: "ml-auto text-[8px] font-black uppercase tracking-widest text-white/20 px-2 py-0.5 rounded-md border border-white/5", children: "Soon" })), item.path === '/notifications' && unreadCount > 0 && (_jsx("span", { className: "ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]", children: unreadCount > 99 ? '99+' : unreadCount })), item.path === '/messages' && unreadChatsCount > 0 && (_jsx("span", { className: "ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]", children: unreadChatsCount > 99 ? '99+' : unreadChatsCount }))] }, item.path));
-                    }), _jsxs(NavLink, { to: user?.username ? `/profile/${user.username}` : "/", className: ({ isActive }) => `
-            flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group mt-1
-            ${isActive
-                            ? "bg-gradient-to-r from-white/10 to-white/5 text-white border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                            : "text-white/60 hover:bg-white/5 hover:text-white border border-transparent"}
-          `, children: [_jsx(User, { className: "w-5 h-5" }), "Profile"] }), 
-                    _jsxs("button", { 
-                        onClick: () => setIsInviteOpen(true), 
-                        className: "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white border border-transparent transition-all duration-200 group mt-1",
-                        children: [_jsx(UserPlus, { className: "w-5 h-5 group-hover:scale-110 transition-transform" }), "Invite Friends"]
-                    }),
-                    (user?.role === "admin" || user?.role === "moderator" || user?.email === "ezeilodavid292@gmail.com" || localStorage.getItem('login_email') === "ezeilodavid292@gmail.com") && (_jsxs(NavLink, { to: "/admin", className: ({ isActive }) => `
-              flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group mt-1
-              ${isActive
-                            ? "bg-emerald-400/20 text-emerald-400 border border-emerald-400/20"
-                            : "text-emerald-400/60 hover:text-emerald-400 hover:bg-emerald-400/10 border border-transparent"}
-            `, children: [_jsx(ShieldCheck, { className: "w-5 h-5" }), "Admin Panel"] }))] }), _jsx("div", { className: "p-4 mt-auto", children: _jsxs("div", { className: "glass-panel rounded-2xl p-4 flex flex-col gap-3", children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx(Avatar, { src: user?.avatarUrl, label: user?.fullName, alt: "Profile", className: "w-10 h-10 rounded-full border border-white/10 object-cover" }), _jsxs("div", { className: "flex-1 min-w-0", children: [_jsx("p", { className: "text-sm font-medium text-white truncate", children: user?.fullName || "Student" }), _jsx("p", { className: "text-xs text-white/50 truncate", children: user?.university || "University Student" })] })] }), _jsx("div", { className: "h-px w-full bg-white/10" }), _jsxs("div", { className: "flex items-center justify-between", children: [_jsx(Link, { to: "/settings", className: "text-white/50 hover:text-white transition-colors p-1", children: _jsx(Settings, { className: "w-4 h-4" }) }), _jsx("button", { onClick: () => {
-                                        logout();
-                                        navigate("/login");
-                                    }, className: "text-white/50 hover:text-red-400 transition-colors p-1", children: _jsx(LogOut, { className: "w-4 h-4" }) })] })] }) }), _jsx(InviteModal, { isOpen: isInviteOpen, onClose: () => setIsInviteOpen(false), username: user?.username })] }));
+  const { user, logout } = useAuthStore();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const isAdmin = user?.role === "admin" || user?.role === "moderator" || isAdminEmail(user?.email);
+
+  const { data: unreadData } = useQuery({
+    queryKey: ["notifications-unread"],
+    queryFn: api.notifications.getUnreadCount,
+  });
+  const { data: chatsData } = useQuery({
+    queryKey: ["chats"],
+    queryFn: api.chats.getAll,
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const unreadCount = unreadData?.count || 0;
+  const unreadChatsCount = chatsData?.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0) || 0;
+  const badgeValue = (type) => type === "messages" ? unreadChatsCount : type === "notifications" ? unreadCount : 0;
+
+  const handleNavClick = (path) => {
+    if (location.pathname === "/" && path === "/") window.dispatchEvent(new Event("gounion-refresh-feed"));
+    if (location.pathname === "/konnect" && path === "/konnect") window.dispatchEvent(new Event("gounion-refresh-goto"));
+  };
+
+  return (
+    <motion.aside initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.45 }} className="fixed left-0 top-0 z-40 hidden h-screen w-72 flex-col border-r border-white/10 bg-[rgba(4,5,6,0.78)] backdrop-blur-2xl md:flex">
+      <div className="p-5">
+        <Link to="/" className="flex items-center gap-3 mb-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg font-black text-black">R</span>
+          <span>
+            
+          </span>
+        </Link>
+        
+      </div>
+
+      <nav className="mt-2 flex-1 space-y-1 px-4">
+        <p className="rc-label mb-3 px-2">Network</p>
+        {mainNav.map((item) => {
+          const count = badgeValue(item.badge);
+          return (
+            <NavLink key={item.path} to={item.path} onClick={() => handleNavClick(item.path)} className={({ isActive }) => `flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-semibold transition ${isActive ? (item.label === 'GoUnion' ? 'border-[rgba(199,249,79,0.28)] bg-[var(--rc-go-soft)] text-white' : 'border-white/10 bg-white/10 text-white') : "border-transparent text-white/58 hover:bg-white/[0.045] hover:text-white"}`}>
+              <item.icon className={`h-5 w-5 ${location.pathname === item.path && item.label === 'GoUnion' ? 'text-[var(--rc-go)]' : ''}`} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">{item.label}</span>
+                  {item.sub && <span className="text-[10px] uppercase tracking-wider text-white/40">{item.sub}</span>}
+                </div>
+              </div>
+              {count > 0 && <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">{count > 99 ? "99+" : count}</span>}
+            </NavLink>
+          );
+        })}
+
+        <NavLink to="/groups" className={({ isActive }) => `mt-1 flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-semibold transition ${isActive ? "border-white/10 bg-white/10 text-white" : "border-transparent text-white/58 hover:bg-white/[0.045] hover:text-white"}`}>
+          <Users className="h-5 w-5" />
+          <span>Circles</span>
+        </NavLink>
+
+        <div className="mt-6">
+          <p className="rc-label mb-3 px-2">Products</p>
+          <NavLink to="/teaky" className={({ isActive }) => `flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-semibold transition ${isActive ? "border-[rgba(104,212,255,0.32)] bg-[var(--rc-teaky-soft)] text-white" : "border-transparent text-white/58 hover:bg-white/[0.045] hover:text-white"}`}>
+            <ShoppingBag className={`h-5 w-5 ${location.pathname === '/teaky' ? 'text-[var(--rc-teaky)]' : ''}`} />
+            <div className="flex-1 min-w-0 flex items-center justify-between">
+              <span className="font-bold">Teaky</span>
+              <span className="rounded-full border border-[rgba(104,212,255,0.24)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-[var(--rc-teaky)]">Soon</span>
+            </div>
+          </NavLink>
+        </div>
+        <NavLink to={user?.username ? `/profile/${user.username}` : "/"} className={({ isActive }) => `flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${isActive ? "border-white/10 bg-white/10 text-white" : "border-transparent text-white/58 hover:bg-white/[0.045] hover:text-white"}`}>
+          <User className="h-5 w-5" /> Profile
+        </NavLink>
+        <button onClick={() => setIsInviteOpen(true)} className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-white/58 transition hover:bg-white/[0.045] hover:text-white">
+          <UserPlus className="h-5 w-5" /> Invite
+        </button>
+        {isAdmin && (
+          <NavLink to="/admin" className={({ isActive }) => `flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${isActive ? "border-emerald-400/20 bg-emerald-400/12 text-emerald-300" : "border-transparent text-emerald-300/70 hover:bg-emerald-400/10 hover:text-emerald-300"}`}>
+            <ShieldCheck className="h-5 w-5" /> Admin Panel
+          </NavLink>
+        )}
+      </nav>
+
+      <div className="p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+          <div className="flex items-center gap-3">
+            <Avatar src={user?.avatarUrl} label={user?.fullName} alt="Profile" className="h-11 w-11 rounded-xl border border-white/10 object-cover" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-white">{user?.fullName || "Student"}</p>
+              <p className="truncate text-xs text-white/42">{user?.university || "Choose your campus"}</p>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+            <Link to="/settings" className="rounded-lg p-2 text-white/45 hover:bg-white/5 hover:text-white"><Settings className="h-4 w-4" /></Link>
+            <button onClick={() => { logout(); navigate("/login"); }} className="rounded-lg p-2 text-white/45 hover:bg-red-500/10 hover:text-red-300"><LogOut className="h-4 w-4" /></button>
+          </div>
+        </div>
+      </div>
+
+      <InviteModal isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} username={user?.username} />
+    </motion.aside>
+  );
 };

@@ -11,8 +11,8 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
     const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? window.location.origin 
         : 'https://gounion.me';
-    const inviteLink = `${baseUrl}/login?isSignup=true`;
-    const shareMessage = `Hey! Join me on GoUnion, the exclusive real-time college campus network for students. Sign up here: ${inviteLink}`;
+    const inviteLink = `${baseUrl}/`;
+    const shareMessage = `Hey! Join me on Reconnected. Enter our campus GoUnion, explore the Pulse, and connect with Circles. Plus, get ready for the Teaky campus marketplace. Join here: ${inviteLink}`;
     
     const handleCopy = async () => {
         try {
@@ -34,7 +34,7 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
     };
     
     const shareToEmail = () => {
-        window.open(`mailto:?subject=Join%20GoUnion&body=${encodeURIComponent(shareMessage)}`, '_blank');
+        window.open(`mailto:?subject=Join%20Reconnected&body=${encodeURIComponent(shareMessage)}`, '_blank');
     };
 
     return (
@@ -61,8 +61,8 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
                                     <Share2 size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="font-serif text-xl text-white">Invite Friends</h3>
-                                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mt-0.5">Grow your campus network</p>
+                                    <h3 className="font-serif text-xl text-white">Invite Campus Friends</h3>
+                                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mt-0.5">Bring them into Reconnected</p>
                                 </div>
                             </div>
                             <button onClick={onClose} className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-full transition-colors">
@@ -72,7 +72,7 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
                         
                         <div className="space-y-4 py-2">
                             <p className="text-sm text-zinc-400 leading-relaxed">
-                                Share the link below to invite other university students to join GoUnion.
+                                Share this with students from your school so they can join their own GoUnion space inside Reconnected.
                             </p>
                             
                             <div className="relative flex items-center bg-white/5 border border-white/5 rounded-2xl p-4 gap-3">

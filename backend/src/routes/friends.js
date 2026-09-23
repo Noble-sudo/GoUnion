@@ -4,6 +4,7 @@ import { addNotification, publicUser } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { notFound } from '../utils/httpError.js';
+import { assertSameInstitution } from '../utils/institutionScope.js';
 
 export const friendsRouter = Router();
 
@@ -17,7 +18,9 @@ friendsRouter.get(
     ]);
     const followerSet = new Set(followers.map((follow) => follow.follower_id));
     const mutualIds = following.map((follow) => follow.following_id).filter((id) => followerSet.has(id));
-    const users = await User.find({ id: { $in: mutualIds } });
+    const users = await User.find({
+      id: { $in: mutualIds },
+    });
     res.json(await Promise.all(users.map((user) => publicUser(user, req.user.id))));
   }),
 );

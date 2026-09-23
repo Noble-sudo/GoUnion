@@ -25,25 +25,43 @@
 }
 
 :root {
-    --background: oklch(0.01 0 0);
+    --background: oklch(0.012 0.005 250);
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.01 0 0);
+    --card: oklch(0.09 0.006 250);
     --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.01 0 0);
+    --popover: oklch(0.09 0.006 250);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0.16 113.8);   /* A neon chartreuse/green v2 uses */
+    --primary: oklch(0.88 0.15 120);
     --primary-foreground: oklch(0.145 0 0);
-    --secondary: oklch(0.269 0 0);
+    --secondary: oklch(0.19 0.012 250);
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.65 0.25 285);      /* Muted accent v2 might use */
+    --muted: oklch(0.2 0.01 250);
+    --muted-foreground: oklch(0.74 0.012 250);
+    --accent: oklch(0.7 0.14 220);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
     --radius: 0.625rem;
+
+    --rc-bg: #040506;
+    --rc-bg-elevated: #0a0d10;
+    --rc-bg-panel: rgba(255, 255, 255, 0.035);
+    --rc-bg-panel-strong: rgba(255, 255, 255, 0.065);
+    --rc-border: rgba(255, 255, 255, 0.09);
+    --rc-border-strong: rgba(255, 255, 255, 0.16);
+    --rc-text: #f7f7f2;
+    --rc-text-muted: rgba(247, 247, 242, 0.62);
+    --rc-text-soft: rgba(247, 247, 242, 0.42);
+    --rc-go: #c7f94f;
+    --rc-go-soft: rgba(199, 249, 79, 0.12);
+    --rc-teaky: #68d4ff;
+    --rc-teaky-soft: rgba(104, 212, 255, 0.12);
+    --rc-warm: #f3bc63;
+    --rc-danger: #ff6b6b;
+    --rc-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+    --rc-shadow-soft: 0 14px 36px rgba(0, 0, 0, 0.24);
 }
 
 .dark {
@@ -77,71 +95,95 @@
   }
 
   body {
-    background-color: #030303;
-    color: #ffffff;
+    background-color: var(--rc-bg);
+    color: var(--rc-text);
     font-family: 'Inter', system-ui, sans-serif;
-    background-image: 
-      radial-gradient(circle at 15% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 25%),
-      radial-gradient(circle at 85% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 25%);
+    background-image:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 18rem),
+      linear-gradient(135deg, rgba(199, 249, 79, 0.045), rgba(104, 212, 255, 0.035) 34%, rgba(255, 255, 255, 0) 58%),
+      linear-gradient(#040506, #040506);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  body:has(video)::after {
-    content: 'GoUnion';
-    position: fixed;
-    top: 5.5rem;
-    left: 1rem;
-    z-index: 999;
-    pointer-events: none;
-    padding: 0.3rem 0.6rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 0.5rem;
-    background: rgba(0, 0, 0, 0.45);
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.625rem;
-    font-weight: 900;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    backdrop-filter: blur(4px);
+  ::selection {
+    background: rgba(199, 249, 79, 0.24);
+    color: var(--rc-text);
   }
 
+  :focus-visible {
+    outline: 2px solid rgba(199, 249, 79, 0.75);
+    outline-offset: 3px;
+  }
+
+  
+
   @media (min-width: 768px) {
-    body:has(video)::after {
-      left: calc(16rem + 1rem);
-    }
+    
   }
 }
 
 @layer components {
   .glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--rc-bg-panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--rc-border);
   }
   
   .glass-panel {
-    background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+      var(--rc-bg-panel);
+    border: 1px solid var(--rc-border);
+    box-shadow: var(--rc-shadow-soft);
   }
 
   .text-glow {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 24px rgba(199, 249, 79, 0.2);
   }
 
   .story-ring {
-    background: linear-gradient(45deg, #c4ff0e, #7c3aed);
+    background: linear-gradient(45deg, var(--rc-go), var(--rc-teaky));
     padding: 2px;
   }
 
   .gradient-text {
-    background: linear-gradient(to right, #c4ff0e, #7c3aed);
+    background: linear-gradient(to right, var(--rc-go), var(--rc-teaky));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+
+  .rc-surface {
+    background: var(--rc-bg-panel);
+    border: 1px solid var(--rc-border);
+    box-shadow: var(--rc-shadow-soft);
+  }
+
+  .rc-surface-strong {
+    background: var(--rc-bg-panel-strong);
+    border: 1px solid var(--rc-border-strong);
+    box-shadow: var(--rc-shadow);
+  }
+
+  .rc-product-go {
+    background: var(--rc-go-soft);
+    border-color: rgba(199, 249, 79, 0.24);
+    color: var(--rc-go);
+  }
+
+  .rc-product-teaky {
+    background: var(--rc-teaky-soft);
+    border-color: rgba(104, 212, 255, 0.24);
+    color: var(--rc-teaky);
+  }
+
+  .rc-label {
+    color: var(--rc-text-soft);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 }
 

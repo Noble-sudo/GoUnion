@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import axios from 'axios';
 import { useAuthStore } from '../store';
+import { formatTimeAgo } from '../utils/format';
 import { authStorage } from '../utils/persistentStorage';
 const configuredApiUrl = import.meta.env.VITE_API_URL ||
     (import.meta.env.DEV ? `http://${window.location.hostname}:8001/api` : '/api');
@@ -115,7 +116,7 @@ apiClient.interceptors.response.use((response) => {
     return Promise.reject(error);
 });
 // Helper to build full URLs for media
-const getFullUrl = (url) => {
+export const getFullUrl = (url) => {
     if (!url)
         return null;
     if (url.startsWith('http'))
@@ -158,17 +159,16 @@ const getValidDate = (value) => {
 };
 const formatLastSeen = (value) => {
     const date = getValidDate(value);
-    if (!date)
-        return '';
-    const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
-    if (minutes < 1)
-        return 'just now';
-    if (minutes < 60)
-        return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24)
-        return `${hours}h ago`;
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    if (!date) return '';
+    const now = new Date();
+    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return `at ${timeStr}`;
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.getDate() === yesterday.getDate() && date.getMonth() === yesterday.getMonth() && date.getFullYear() === yesterday.getFullYear();
+    if (isYesterday) return `yesterday at ${timeStr}`;
+    return `on ${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${timeStr}`;
 };
 // Helper to transform user data
 export const transformUser = (user) => {
@@ -210,6 +210,8 @@ export const transformUser = (user) => {
         avatarUrl: getFullUrl(profile.profile_picture || profile.profile_picture_url || user.profile_picture || user.profile_picture_url || user.avatarUrl || user.avatar_url || profile.avatarUrl || profile.avatar_url) ||
             `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
         university: profile.university || user.university || 'University Student',
+        institution_id: user.institution_id || null,
+        verification_status: user.verification_status || 'UNVERIFIED',
         department: profile.department || user.department || profile.course || user.course || '',
         level: profile.level || user.level || '',
         followers: user.followers_count ?? user.followers ?? 0,
@@ -217,10 +219,15 @@ export const transformUser = (user) => {
         bio: profile.bio || user.bio || '',
         coverUrl: getFullUrl(profile.cover_photo || user.cover_photo || user.coverUrl) || '',
         isFollowing: user.is_following ?? user.isFollowing ?? false,
-        isOnline: user.is_online ?? user.isOnline ?? profile.is_online ?? profile.isOnline ?? false,
-        lastSeen: formatLastSeen(user.last_seen || user.lastSeen || profile.last_seen || profile.lastSeen),
+        isOnline: user.is_online ?? user.isOnline ?? profile.is_online ?? profile.isOnline ?? true,
+        lastSeen: formatLastSeen(user.last_seen || user.lastSeen || profile.last_seen || profile.lastSeen) || "",
         role: assignedRole || (fallbackAdmin ? 'admin' : 'user'),
         isActive: user.is_active ?? true,
+        createdAt: user.created_at || user.createdAt || Date.now(),
+        settings: user.settings || {},
+        blockedUsers: user.blocked_users || [],
+        mutedConversations: user.muted_conversations || [],
+        isBanned: user.is_banned || false,
         totalLikes: user.total_likes ?? 0,
     };
 };
@@ -233,7 +240,7 @@ export const transformPost = (post) => {
     const isReel = Boolean(post.video);
     const mediaType = isReel ? 'video' : post.image ? 'image' : 'text';
     return {
-        id: post.id.toString(),
+        id: post?.id?.toString(),
         author: transformUser(post.user),
         content: post.caption || '',
         imageUrl: getFullUrl(rawMedia),
@@ -242,43 +249,67 @@ export const transformPost = (post) => {
         views: post.views_count ?? post.views ?? 0,
         likes: post.likes_count || 0,
         comments: post.comments_count ?? post.comments?.length ?? 0,
-        timestamp: createdAt ? createdAt.toLocaleDateString() : '',
+        timestamp: createdAt ? formatTimeAgo(createdAt) : '',
         createdAt: createdAt ? createdAt.toISOString() : undefined,
-        isLiked: post.likes?.some((l) => l.id === currentUserId) || false,
+        isLiked: post.likes?.some((l) => l?.id === currentUserId) || false,
         groupId: post.group_id?.toString(),
         isSystem: Boolean(post.is_system),
     };
 };
 const transformConversation = (conversation) => {
     const currentUserId = authStorage.getItem('user_id');
-    const partner = conversation.participants?.find((p) => String(p.id) !== String(currentUserId)) ||
-        conversation.participants?.[0] ||
-        conversation.partner ||
-        { id: 0, username: 'Unknown', full_name: 'Unknown User' };
+    
+    let partner;
+    if (conversation.group) {
+        partner = {
+            id: conversation?.group?.id,
+            username: conversation.group.name,
+            full_name: conversation.group.name,
+            profile_picture_url: conversation.group.cover_image,
+            isGroup: true,
+            onlineCount: conversation.participants ? conversation.participants.filter(p => p.is_online || p.isOnline).length : 0
+        };
+    } else {
+        partner = conversation.participants?.find((p) => String(p?.id) !== String(currentUserId)) ||
+            conversation.participants?.[0] ||
+            conversation.partner ||
+            { id: 0, username: 'Unknown', full_name: 'Unknown User' };
+    }
     const lastMessage = conversation.messages?.[conversation.messages.length - 1];
     const lastMessageDate = getValidDate(lastMessage?.created_at || lastMessage?.createdAt);
     return {
-        id: conversation.id.toString(),
-        partner: transformUser(partner),
+        id: conversation?.id?.toString(),
+        participants: conversation.participants ? conversation.participants.filter(Boolean).map(transformUser) : [],
+        partner: { ...transformUser(partner), isGroup: !!partner.isGroup, onlineCount: partner.onlineCount || 0, isOnline: !!partner.isGroup || (partner.is_online ?? partner.isOnline ?? transformUser(partner).isOnline) },
         lastMessage: lastMessage?.content ||
-            (lastMessage?.video_url ? 'Video' : lastMessage?.image_url ? 'Attachment' : 'No messages yet'),
-        timestamp: lastMessageDate
-            ? lastMessageDate.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-            })
-            : '',
+            (lastMessage?.audio_url || (lastMessage?.image_url && lastMessage.image_url.match(/\\.(mp3|wav|ogg|webm|m4a)$/i)) ? 'Voice Note' : (lastMessage?.video_url ? 'Video' : lastMessage?.image_url ? 'Attachment' : 'No messages yet')),
+        timestamp: (() => {
+          if (!lastMessageDate) return '';
+          const now = new Date();
+          const timeStr = lastMessageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const isToday = lastMessageDate.getDate() === now.getDate() && lastMessageDate.getMonth() === now.getMonth() && lastMessageDate.getFullYear() === now.getFullYear();
+          if (isToday) return timeStr;
+          const yesterday = new Date(now);
+          yesterday.setDate(now.getDate() - 1);
+          const isYesterday = lastMessageDate.getDate() === yesterday.getDate() && lastMessageDate.getMonth() === yesterday.getMonth() && lastMessageDate.getFullYear() === yesterday.getFullYear();
+          if (isYesterday) return `Yesterday, ${timeStr}`;
+          if (now.getTime() - lastMessageDate.getTime() < 6 * 24 * 60 * 60 * 1000) {
+              const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+              return `${days[lastMessageDate.getDay()]}, ${timeStr}`;
+          }
+          return `${lastMessageDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${timeStr}`;
+      })(),
         unreadCount: conversation.unread_count ?? conversation.unreadCount ?? 0,
     };
 };
-const transformMessage = (m) => {
+export const transformMessage = (m) => {
     const createdAt = getValidDate(m.created_at || m.createdAt || m.timestamp) || new Date();
     const rawAudioUrl = m.audio_url || (m.image_url && m.image_url.match(/\.(mp3|wav|ogg|webm|m4a)$/i) ? m.image_url : null);
     const hasAudio = !!rawAudioUrl;
     const rawStickerUrl = m.sticker_url || m.stickerUrl || null;
     const rawFileUrl = m.image_url && !isImageMedia(m.image_url) && !isVideoMedia(m.image_url) && !rawAudioUrl ? m.image_url : null;
     return {
-        id: m.id.toString(),
+        id: m?.id?.toString(),
         content: m.content,
         imageUrl: m.image_url && !hasAudio && isImageMedia(m.image_url) ? getFullUrl(m.image_url) : null,
         videoUrl: getFullUrl(m.video_url) || (m.image_url && !hasAudio && isVideoMedia(m.image_url) ? getFullUrl(m.image_url) : null),
@@ -289,7 +320,11 @@ const transformMessage = (m) => {
         fileName: rawFileUrl ? rawFileUrl.split('/').pop() : null,
         isRead: m.is_read ?? m.isRead ?? m.status === 'read' ?? Boolean(m.read_at || m.readAt || m.seen || m.seen_by?.length),
         isDeleted: m.is_deleted ?? m.isDeleted ?? false,
+        isForwarded: m.is_forwarded ?? m.isForwarded ?? false,
         senderId: m.sender_id,
+        sender: m.sender ? transformUser(m.sender) : null,
+        seenByUsers: m.seen_by_users ? m.seen_by_users.map(s => ({ user: transformUser(s.user), seenAt: s.seen_at })) : [],
+        replyToId: m.reply_to_id || m.replyToId || null,
         createdAt: createdAt.toISOString(),
         timestamp: createdAt.toLocaleTimeString([], {
             hour: '2-digit',
@@ -345,6 +380,7 @@ const transformProfile = (data, usernameFallback = '') => {
     return {
         id: userData.id || data.user_id || data.id,
         username,
+        verification_status: userData.verification_status || data.verification_status || 'UNVERIFIED',
         fullName: profile.full_name || userData.full_name || userData.name || username,
         email: userData.email || profile.email || '',
         avatarUrl: getFullUrl(profile.profile_picture || profile.profile_picture_url || userData.profile_picture || userData.profile_picture_url || userData.avatar_url) ||
@@ -378,6 +414,8 @@ const notificationMessage = (notification) => {
             return 'commented on your post.';
         case 'follow':
             return 'started following you.';
+        case 'profile_view':
+            return 'viewed your profile.';
         case 'group_invite':
             return 'invited you to a group.';
         case 'group_request':
@@ -400,17 +438,56 @@ export const transformNotification = (notification) => {
         type: notification.type || 'activity',
         actor: transformUser(actor),
         message: notificationMessage(notification),
-        timestamp: createdAt
-            ? new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : notification.timestamp || 'Now',
+        timestamp: createdAt ? formatTimeAgo(createdAt) : notification.timestamp || 'Now',
         read: notification.read ?? notification.is_read ?? false,
         postId: notification.post_id?.toString(),
         commentId: notification.comment_id?.toString(),
+        groupId: notification.group_id?.toString(),
         postContent: notification.post?.caption || notification.post?.content || null,
         postImageUrl: getFullUrl(notification.post?.image_url || notification.post?.video_url || notification.post?.image || notification.post?.video) || null,
     };
 };
 export const api = {
+      media: { upload: uploadFile },
+    identities: {
+        request: async (data) => {
+            const res = await apiClient.post("/identities/request", data);
+            return res.data;
+        },
+        changeCampus: async (identity_id) => {
+            const res = await apiClient.post("/identities/change-campus", { identity_id });
+            return res.data;
+        },
+        getMyIdentities: async () => {
+            const res = await apiClient.get("/identities/me");
+            return res.data;
+        }
+    },
+    
+    users: {
+        updateSettings: async (settings) => {
+            const res = await apiClient.put('/users/me/settings', settings);
+            return transformUser(res.data);
+        },
+        blockUser: async (userId) => {
+            const res = await apiClient.post(`/users/${userId}/block`);
+            return res.data;
+        },
+        unblockUser: async (userId) => {
+            const res = await apiClient.post(`/users/${userId}/unblock`);
+            return res.data;
+        }
+    },
+    institutions: {
+        getAll: async () => {
+            try {
+                const res = await apiClient.get("/institutions/");
+                return res.data || [];
+            } catch {
+                return [];
+            }
+        }
+    },
     health: {
         check: async () => {
             const res = await apiClient.get('/health');
@@ -481,6 +558,10 @@ export const api = {
             }
             return res.data;
         },
+        submitAppeal: async (email, password, appealText) => {
+            const res = await apiClient.post('/auth/appeal', { email, password, appeal_text: appealText });
+            return res.data;
+        },
     },
     posts: {
         getFeed: async ({ pageParam = 0, seed } = {}) => {
@@ -525,7 +606,7 @@ export const api = {
             }
             catch {
                 const res = await apiClient.get('/posts/?skip=0&limit=200');
-                const match = res.data.find((post) => String(post.id) === String(id));
+                const match = res.data.find((post) => String(post?.id) === String(id));
                 if (!match)
                     throw new Error('Post not found');
                 return transformPost(match);
@@ -683,35 +764,62 @@ export const api = {
                     .map(transformUser)
                     .filter((u) => String(u.id) !== String(authStorage.getItem('user_id')));
             }
-        },
+        }
     },
     groups: {
+        deleteEvent: async (eventId) => {
+            const res = await apiClient.delete(`/groups/events/${eventId}`);
+            return res.data;
+        },
+        getEvents: async (groupId) => {
+            const res = await apiClient.get(`/groups/${groupId}/events`);
+            return res.data;
+        },
+        createEvent: async (groupId, data) => {
+            const res = await apiClient.post(`/groups/${groupId}/events`, data);
+            return res.data;
+        },
+        rsvpEvent: async (eventId, status) => {
+            const res = await apiClient.post(`/groups/events/${eventId}/rsvp`, { status });
+            return res.data;
+        },
         getAll: async () => {
             const res = await apiClient.get('/groups/');
             return res.data.map((g) => ({
-                id: g.id.toString(),
+                id: g?.id?.toString(),
                 name: g.name,
                 description: g.description,
                 memberCount: g.member_count || 0,
-                imageUrl: getFullUrl(g.cover_image) ||
-                    `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`,
+                imageUrl: getFullUrl(g.cover_image) || `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`,
                 isJoined: g.is_joined ?? g.isJoined ?? false,
                 privacy: g.privacy,
+                creatorId: g.creator_id || g.creatorId,
+                creator_id: g.creator_id || g.creatorId,
+                institutionId: g.institution_id || g.institutionId || null,
+                institutionName: g.institution_name || g.institutionName || g.university || null,
+                university: g.institution_name || g.institutionName || g.university || null,
+                has_requested: g.has_requested,
+                category: g.category || 'Other',
             }));
         },
         getById: async (id) => {
             const res = await apiClient.get(`/groups/${id}`);
             const g = res.data;
             return {
-                id: g.id.toString(),
+                id: g?.id?.toString(),
                 name: g.name,
                 description: g.description,
                 memberCount: g.member_count || 0,
-                imageUrl: getFullUrl(g.cover_image) ||
-                    `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`,
+                imageUrl: getFullUrl(g.cover_image) || `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`,
                 isJoined: g.is_joined ?? g.isJoined ?? false,
                 privacy: g.privacy,
-                creatorId: g.creator_id,
+                creatorId: g.creator_id || g.creatorId,
+                creator_id: g.creator_id || g.creatorId,
+                institutionId: g.institution_id || g.institutionId || null,
+                institutionName: g.institution_name || g.institutionName || g.university || null,
+                university: g.institution_name || g.institutionName || g.university || null,
+                has_requested: g.has_requested,
+                category: g.category || 'Other',
             };
         },
         getMembers: async (id) => {
@@ -720,6 +828,10 @@ export const api = {
         },
         join: async (id, data) => {
             const res = await apiClient.post(`/groups/${id}/join`, data);
+            return res.data;
+        },
+        leave: async (id) => {
+            const res = await apiClient.post(`/groups/${id}/leave`);
             return res.data;
         },
         getRequests: async (id) => {
@@ -739,19 +851,29 @@ export const api = {
                 name: data.name,
                 description: data.description,
                 privacy: data.privacy,
+                category: data.category,
                 cover_image,
             });
+            return res.data;
+        },
+        
+        delete: async (id) => {
+            const res = await apiClient.delete(`/groups/${id}`);
             return res.data;
         },
         getPosts: async (id) => {
             const res = await apiClient.get(`/groups/${id}/posts/`);
             return res.data.map(transformPost);
         },
+        getChat: async (id) => {
+            const res = await apiClient.get(`/groups/${id}/chat`);
+            return res.data;
+        },
         createPost: async (id, data) => {
             const res = await apiClient.post('/posts/', await buildPostPayload({ ...data, group_id: id }));
             return transformPost(res.data);
         },
-        updateGroup: async (id, { name, description, privacy, file } = {}) => {
+        update: async (id, { name, description, privacy, file, category } = {}) => {
             let cover_url = undefined;
             if (file) {
                 cover_url = await uploadFile(file);
@@ -760,6 +882,7 @@ export const api = {
             if (name !== undefined) payload.name = name;
             if (description !== undefined) payload.description = description;
             if (privacy !== undefined) payload.privacy = privacy;
+            if (category !== undefined) payload.category = category;
             if (cover_url !== undefined) payload.cover_image = cover_url;
             const res = await apiClient.put(`/groups/${id}`, payload);
             return res.data;
@@ -768,24 +891,6 @@ export const api = {
             const res = await apiClient.put(`/groups/${groupId}/members/${userId}/role?role=${role}`);
             return res.data;
         },
-        kickMember: async (groupId, userId) => {
-            const res = await apiClient.delete(`/groups/${groupId}/members/${userId}`);
-            return res.data;
-        },
-        leave: async (groupId) => {
-            const res = await apiClient.post(`/groups/${groupId}/leave`);
-            return res.data;
-        },
-        deleteGroup: async (groupId) => {
-            const res = await apiClient.delete(`/groups/${groupId}`);
-            return res.data;
-        },
-    },
-    search: {
-        users: async (query) => {
-            const res = await apiClient.get(`/search/users?q=${encodeURIComponent(query)}`);
-            return res.data.map(transformUser);
-        },
         posts: async (query) => {
             const res = await apiClient.get(`/search/posts?q=${encodeURIComponent(query)}`);
             return res.data.map(transformPost);
@@ -793,7 +898,7 @@ export const api = {
         groups: async (query) => {
             const res = await apiClient.get(`/search/groups?q=${encodeURIComponent(query)}`);
             return res.data.map((g) => ({
-                id: g.id.toString(),
+                id: g?.id?.toString(),
                 name: g.name,
                 description: g.description,
                 memberCount: g.member_count || 0,
@@ -841,7 +946,7 @@ export const api = {
             const res = await apiClient.get(`/conversations/${conversationId}/messages/`);
             return res.data.map(transformMessage);
         },
-        sendMessage: async (conversationId, content, file, audioBlob, sticker, replyToId) => {
+        sendMessage: async (conversationId, content, file, audioBlob, sticker, replyToId, isForwarded = false, forwardedMedia = null) => {
             let imageUrl = null;
             let videoUrl = null;
             let audioUrl = null;
@@ -860,6 +965,12 @@ export const api = {
                 const audioFile = new File([audioBlob], `voice_note.${audioExtension}`, { type: audioType });
                 audioUrl = await uploadFile(audioFile);
             }
+            if (forwardedMedia) {
+                imageUrl = imageUrl || forwardedMedia.imageUrl;
+                videoUrl = videoUrl || forwardedMedia.videoUrl;
+                audioUrl = audioUrl || forwardedMedia.audioUrl;
+                if (forwardedMedia.fileUrl) imageUrl = imageUrl || forwardedMedia.fileUrl;
+            }
             // If backend drops audio_url, pass it to image_url as fallback
             if (audioUrl && !imageUrl && !videoUrl) {
                 imageUrl = audioUrl;
@@ -873,8 +984,17 @@ export const api = {
                 sticker_url: sticker?.url || null,
                 sticker_id: sticker?.id || null,
                 reply_to_id: replyToId || null,
+                is_forwarded: isForwarded,
             });
             return transformMessage(res.data);
+        },
+        muteConversation: async (conversationId) => {
+            const res = await apiClient.post(`/conversations/${conversationId}/mute`);
+            return res.data;
+        },
+        unmuteConversation: async (conversationId) => {
+            const res = await apiClient.post(`/conversations/${conversationId}/unmute`);
+            return res.data;
         },
         deleteMessage: async (messageId) => {
             const res = await apiClient.delete(`/messages/${messageId}`);
@@ -891,7 +1011,7 @@ export const api = {
                 const existingRes = await apiClient.get('/conversations/');
                 const existingConvos = existingRes.data;
                 const targetId = String(participantIds[0]);
-                const existingConvo = existingConvos.find((c) => c.participants?.some((p) => String(p.id) === targetId));
+                const existingConvo = existingConvos.find((c) => c.participants?.some((p) => String(p?.id) === targetId));
                 if (existingConvo) {
                     return transformConversation(existingConvo);
                 }
@@ -968,6 +1088,10 @@ export const api = {
             const res = await apiClient.post('/notifications/subscribe', subscription);
             return res.data;
         },
+        getVapidPublicKey: async () => {
+            const res = await apiClient.get('/notifications/vapid-public-key');
+            return res.data;
+        },
     },
     reports: {
         create: async (data) => {
@@ -988,6 +1112,29 @@ export const api = {
         },
     },
     admin: {
+        switchCampus: async (institution_id) => {
+            const res = await apiClient.post('/admin/switch-campus', { institution_id });
+            if (res.data.status === 'ok') {
+                const userRes = await apiClient.get('/users/me/');
+                const transformedUser = transformUser(userRes.data);
+                localStorage.setItem('user_data', JSON.stringify(transformedUser));
+            }
+            return res.data;
+        },
+        getAppeals: async () => {
+            const res = await apiClient.get('/admin/appeals');
+            return res.data;
+        },
+
+
+
+
+
+
+        resolveAppeal: async (id, status) => {
+            const res = await apiClient.post(`/admin/appeals/${id}/resolve`, { status });
+            return res.data;
+        },
         getStats: async () => {
             try {
                 const res = await apiClient.get('/admin/stats');
@@ -1030,16 +1177,39 @@ export const api = {
             const res = await apiClient.put(`/admin/users/${userId}/role?role=${role}`);
             return res.data;
         },
-        toggleActive: async (userId) => {
-            const res = await apiClient.post(`/admin/users/${userId}/toggle-active`);
+        
+        createCampus: async (data) => {
+            const res = await apiClient.post('/admin/institutions', data);
             return res.data;
         },
+        
+        getPendingIdentities: async () => {
+            const res = await apiClient.get("/admin/identities");
+            return res.data;
+        },
+        resolveIdentity: async (id, action, reason) => {
+            const res = await apiClient.post(`/admin/identities/${id}/${action}`, { reason });
+            return res.data;
+        },
+        updateCampus: async (id, data) => {
+            const res = await apiClient.put(`/admin/institutions/${id}`, data);
+            return res.data;
+        },
+
+        broadcast: async (payload) => {
+            const res = await apiClient.post('/admin/broadcast', payload);
+            return res.data;
+        },
+        toggleActive: async (userId, reason = null) => {
+              const res = await apiClient.post(`/admin/users/${userId}/toggle-active`, { reason });
+              return res.data;
+          },
     },
     stories: {
         getFeed: async () => {
             const res = await apiClient.get('/stories/feed');
             return res.data.map((s) => ({
-                id: s.id.toString(),
+                id: s?.id?.toString(),
                 user: transformUser(s.user),
                 content: s.content,
                 imageUrl: getFullUrl(s.image_url),
@@ -1074,3 +1244,4 @@ export const api = {
     },
 };
 export const getApiErrorMessage = (error, defaultMsg = 'An error occurred') => error?.response?.data?.detail || error?.response?.data?.message || error?.message || defaultMsg;
+

@@ -21,7 +21,7 @@ export const env = {
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret-change-me',
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-me',
   accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '30m',
-  refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d',
+  refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '3650d',
   cloudinaryFolder: process.env.CLOUDINARY_FOLDER || 'gounion',
   appUrl: (process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, ''),
   mailFrom: process.env.MAIL_FROM || 'GoUnion <no-reply@gounion.app>',

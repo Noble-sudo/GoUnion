@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Camera, Check, CheckCheck, Image as ImageIcon, FileText, MessageSquarePlus, MoreVertical, Paperclip, Plus, Search, Send, UserPlus, X, Mic, Smile, Trash2, Reply, Share, Share2, Keyboard, Maximize2, Download, ExternalLink } from "lucide-react";
+import { ArrowLeft, Users, Settings as SettingsIcon, Camera, Check, CheckCheck, Image as ImageIcon, FileText, MessageSquarePlus, MoreVertical, Paperclip, Plus, Search, Send, UserPlus, X, Mic, Smile, Trash2, Reply, Share, Share2, Keyboard, Maximize2, Download, ExternalLink , BellOff, Bell, LogOut, Ban, User, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, getApiErrorMessage } from "../services/api";
 import { authStorage } from "../utils/persistentStorage";
@@ -16,15 +16,26 @@ import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { MediaPlayer } from "../components/ui/MediaPlayer";
 import { useAuthStore } from "../store";
 import { MediaModal } from "../components/ui/MediaModal";
+import { initSocket } from "../utils/socket";
 
-export const Messages = () => {
+const USER_COLORS = ['#ff8a65', '#ba68c8', '#4fc3f7', '#81c784', '#fff176', '#ffb74d', '#f06292', '#4dd0e1', '#aed581'];
+const getUserColor = (userId) => {
+    if (!userId) return USER_COLORS[0];
+    let hash = 0;
+    for (let i = 0; i < String(userId).length; i++) {
+        hash = String(userId).charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return USER_COLORS[Math.abs(hash) % USER_COLORS.length];
+};
+
+export const Messages = ({ embeddedChatId }) => {
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const navigate = useNavigate();
     const currentUserId = authStorage.getItem("user_id");
-    const { user: currentUser } = useAuthStore();
+    const { user: currentUser, updateUser } = useAuthStore();
     const [searchParams, setSearchParams] = useSearchParams();
-    const userIdFromQuery = searchParams.get("userId");
+    const userIdFromQuery = searchParams.get("userId") || searchParams.get("user");
     const queryUsername = searchParams.get("username") || "";
     const queryName = searchParams.get("name") || queryUsername || "New chat";
     const queryAvatar = searchParams.get("avatar") || "";
@@ -33,13 +44,19 @@ export const Messages = () => {
     const fileInputRef = useRef(null);
     const inputRef = useRef(null);
     const sendInFlightRef = useRef(false);
-    const [selectedChatId, setSelectedChatId] = useState(null);
+    const [selectedChatId, setSelectedChatId] = useState(embeddedChatId || null);
+    React.useEffect(() => {
+        if (embeddedChatId) setSelectedChatId(embeddedChatId);
+    }, [embeddedChatId]);
     const [messageText, setMessageText] = useState("");
     const [searchText, setSearchText] = useState("");
     const [attachment, setAttachment] = useState(null);
     const [attachmentPreview, setAttachmentPreview] = useState(null);
     const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+    const [chatListMenuOpen, setChatListMenuOpen] = useState(false);
+    const [isChatMenuOpen, setIsChatMenuOpen] = useState(false);
+    const [leftGroupChat, setLeftGroupChat] = useState(null);
     const [pendingChat, setPendingChat] = useState(null);
     const [chatPrepareError, setChatPrepareError] = useState(null);
     const initializingUserIdRef = useRef(null);
@@ -48,6 +65,7 @@ export const Messages = () => {
     const [isDesktop, setIsDesktop] = useState(() => window.matchMedia("(min-width: 768px)").matches);
     const [isVoiceRecording, setIsVoiceRecording] = useState(false);
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+    const [infoMessage, setInfoMessage] = useState(null);
     const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
     const [activeMessageMenu, setActiveMessageMenu] = useState(null);
     const [replyToMsg, setReplyToMsg] = useState(null);
@@ -149,7 +167,8 @@ export const Messages = () => {
     const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
-        if (!selectedChatId || !window.socket) return;
+        if (!selectedChatId) return;
+        const socket = window.socket || initSocket();
         
         const handleTypingEvent = (data) => {
             if (String(data.conversationId) === String(selectedChatId) && String(data.userId) !== String(currentUserId)) {
@@ -157,14 +176,12 @@ export const Messages = () => {
             }
         };
 
-        window.socket.emit('joinConversation', selectedChatId);
-        window.socket.on('typing', handleTypingEvent);
+        socket.emit('joinConversation', selectedChatId);
+        socket.on('typing', handleTypingEvent);
 
         return () => {
-            if (window.socket) {
-                window.socket.off('typing', handleTypingEvent);
-                window.socket.emit('typing', { conversationId: selectedChatId, isTyping: false });
-            }
+            socket.off('typing', handleTypingEvent);
+            socket.emit('typing', { conversationId: selectedChatId, isTyping: false });
             setPartnerIsTyping(false);
         };
     }, [selectedChatId, currentUserId]);
@@ -176,26 +193,33 @@ export const Messages = () => {
         staleTime: 30000,
     });
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (highlightedMsgId) {
-                const el = document.getElementById(`msg-${highlightedMsgId}`);
-                if (el) {
-                    el.scrollIntoView({ behavior: "smooth", block: "center" });
-                    setTimeout(() => setHighlightedMsgId(null), 3000);
-                } else {
-                    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-                }
-            } else {
-                bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-            }
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [messages, selectedChatId, highlightedMsgId]);
+          // Highlight scrolling
+      useEffect(() => {
+          if (highlightedMsgId) {
+              const timer = setTimeout(() => {
+                  const el = document.getElementById(`msg-${highlightedMsgId}`);
+                  if (el) {
+                      el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+              }, 100);
+              return () => clearTimeout(timer);
+          }
+      }, [highlightedMsgId]);
+
+      // Message arrival / chat open scrolling
+      useEffect(() => {
+          // Only scroll to bottom on new messages if we aren't currently viewing a highlighted message
+          if (!highlightedMsgId) {
+              const timer = setTimeout(() => {
+                  bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+              }, 100);
+              return () => clearTimeout(timer);
+          }
+      }, [messages, selectedChatId]);
 
     useEffect(() => {
         if (!selectedChatId || selectedChatId.startsWith("temp-")) return;
-        const hasUnread = messages.some(m => !m.isRead && String(m.senderId) !== String(currentUserId));
+        const hasUnread = messages.some(m => String(m.senderId) !== String(currentUserId) && !m.seenByUsers?.some(seen => String(seen.user?.id || seen.userId) === String(currentUserId)));
         if (hasUnread) {
             api.chats.markRead(selectedChatId).then(() => {
                 queryClient.invalidateQueries({ queryKey: ["chats"] });
@@ -206,7 +230,7 @@ export const Messages = () => {
     }, [selectedChatId, messages, currentUserId, queryClient]);
 
     const firstUnreadIndex = useMemo(() => {
-        return messages.findIndex(m => !m.isRead && String(m.senderId) !== String(currentUserId));
+        return messages.findIndex(m => String(m.senderId) !== String(currentUserId) && !m.seenByUsers?.some(seen => String(seen.user?.id || seen.userId) === String(currentUserId)));
     }, [messages, currentUserId]);
 
     // Highlight the first unread message when a chat is opened or a new message arrives
@@ -218,8 +242,9 @@ export const Messages = () => {
         }
     }, [selectedChatId, firstUnreadIndex]);
 
+    
     const selectedChat = chats.find((chat) => chat.id === selectedChatId);
-    const activeChat = selectedChat || (pendingChat?.id === selectedChatId ? pendingChat : null);
+    const activeChat = selectedChat || (pendingChat?.id === selectedChatId ? pendingChat : null) || (leftGroupChat?.id === selectedChatId ? leftGroupChat : null);
     const isTempChat = Boolean(selectedChatId?.startsWith("temp-"));
     const isChatPreparing = isTempChat && createChatMutation.isPending && !chatPrepareError;
 
@@ -345,10 +370,65 @@ export const Messages = () => {
         onError: (err) => toast(getApiErrorMessage(err, "Failed to delete message"), "error")
     });
 
+    const leaveGroupMutation = useMutation({
+        mutationFn: (groupId) => api.groups.leave(groupId),
+        onSuccess: (_, groupId) => {
+            const leftChat = chats?.find(c => String(c?.partner?.id) === String(groupId) || String(c?.id) === String(groupId));
+            if (leftChat) setLeftGroupChat({...leftChat, isLeft: true});
+            queryClient.invalidateQueries(["chats"]);
+            toast("You left the group", "success");
+            setSelectedChatId(null);
+        },
+        onError: () => toast("Failed to leave group", "error")
+    });
+
+    const blockUserMutation = useMutation({
+        mutationFn: (userId) => api.users.blockUser(userId),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["chats"]);
+            api.auth.me().then(u => { updateUser(u); queryClient.setQueryData(["currentUser"], u); });
+            toast("User blocked successfully", "success");
+        },
+        onError: () => toast("Failed to block user", "error")
+    });
+
+    const unblockUserMutation = useMutation({
+        mutationFn: (userId) => api.users.unblockUser(userId),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["chats"]);
+            api.auth.me().then(u => { updateUser(u); queryClient.setQueryData(["currentUser"], u); });
+            toast("User unblocked", "success");
+        },
+        onError: () => toast("Failed to unblock user", "error")
+    });
+
+    const toggleGlobalMuteMutation = useMutation({
+        mutationFn: (willMute) => api.users.updateSettings({ push_notifications: !willMute }),
+        onSuccess: (data) => {
+            updateUser(data);
+            queryClient.setQueryData(["currentUser"], data);
+            toast(data.settings.push_notifications ? "Notifications unmuted" : "Notifications muted", "success");
+        },
+        onError: () => toast("Failed to update notification settings", "error")
+    });
+
+    const toggleConversationMuteMutation = useMutation({
+        mutationFn: (conversationId) => {
+            const isMuted = currentUser?.mutedConversations?.includes(String(conversationId));
+            return isMuted ? api.chats.unmuteConversation(conversationId) : api.chats.muteConversation(conversationId);
+        },
+        onSuccess: (data, variables) => {
+            api.auth.me().then(u => { updateUser(u); queryClient.setQueryData(["currentUser"], u); });
+            const isMuted = currentUser?.mutedConversations?.includes(String(variables));
+            toast(isMuted ? "Conversation unmuted" : "Conversation muted", "success");
+        },
+        onError: () => toast("Failed to update conversation settings", "error")
+    });
+
     const sendMessageMutation = useMutation({
-        mutationFn: ({ chatId, content, file, audioBlob, sticker, replyToId }) => api.chats.sendMessage(chatId, content, file, audioBlob, sticker, replyToId),
-        onMutate: async ({ content, file, audioBlob, sticker, replyToId }) => {
-            const activeChatId = selectedChatId;
+        mutationFn: ({ chatId, content, file, audioBlob, sticker, replyToId, isForwarded, forwardedMedia }) => api.chats.sendMessage(chatId || selectedChatId, content, file, audioBlob, sticker, replyToId, isForwarded, forwardedMedia),
+        onMutate: async ({ chatId, content, file, audioBlob, sticker, replyToId, isForwarded, forwardedMedia }) => {
+            const activeChatId = chatId || selectedChatId;
             setMessageText("");
             clearAttachment();
             setReplyToMsg(null);
@@ -373,6 +453,7 @@ export const Messages = () => {
                 fileName: file && !file.type.startsWith("image/") && !file.type.startsWith("video/") ? file.name : null,
                 senderId: currentUserId,
                 replyToId: replyToId || null,
+                isForwarded: isForwarded || false,
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                 dateLabel: new Date().toLocaleDateString([], { month: "short", day: "numeric" }),
                 fullTimestamp: new Date().toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
@@ -453,11 +534,25 @@ export const Messages = () => {
         }
     };
 
+    
+  const [mentionQuery, setMentionQuery] = React.useState(null);
+  const handleMessageChange = (val) => {
+      setMessageText(val);
+      const words = val.split(' ');
+      const lastWord = words[words.length - 1];
+      if (lastWord.startsWith('@')) {
+          setMentionQuery(lastWord.substring(1).toLowerCase());
+      } else {
+          setMentionQuery(null);
+      }
+      if (val && typeof handleTyping === 'function') handleTyping();
+  };
+
     return (
-        <div className="h-[100dvh] w-full bg-[#030303] text-white overflow-hidden">
+        <div className={`${embeddedChatId ? "h-[600px]" : "h-[100dvh]"} w-full bg-[#030303] text-white overflow-hidden`}>
             <div className="h-full flex">
                 {/* Left Sidebar (Chat List) */}
-                <aside className={`w-full md:w-[390px] md:min-w-[390px] bg-[#050505]/95 border-r border-white/10 flex-col ${selectedChatId ? "hidden md:flex" : "flex"}`}>
+                <aside className={`w-full md:w-[390px] md:min-w-[390px] bg-[#050505]/95 border-r border-white/10 flex-col ${selectedChatId ? "hidden md:flex" : "flex"} ${embeddedChatId ? "!hidden" : ""}`}>
                     <div className="h-16 px-4 bg-[#0a0a0c]/95 border-b border-white/5 flex items-center justify-between">
                         <button onClick={() => navigate("/")} className="h-10 w-10 rounded-xl text-white/55 hover:text-white hover:bg-white/5 flex items-center justify-center shrink-0">
                             <ArrowLeft size={21} />
@@ -469,11 +564,34 @@ export const Messages = () => {
                                 <p className="text-xs text-white/40 mt-1">Direct Messages</p>
                             </div>
                         </Link>
-                        <button onClick={() => setIsSuggestionsOpen(true)} className="h-10 w-10 rounded-xl text-white/50 hover:text-white hover:bg-white/5 flex items-center justify-center">
-                            <MoreVertical size={20} />
-                        </button>
+                        <div className="flex items-center gap-1">
+    <button onClick={() => setIsSuggestionsOpen(true)} className="h-10 w-10 rounded-xl text-white/50 hover:text-white hover:bg-white/5 flex items-center justify-center group" title="New Chat">
+        <MessageSquarePlus size={20} className="group-hover:scale-110 transition-transform" />
+    </button>
+    <div className="relative">
+        <button onClick={() => setChatListMenuOpen(!chatListMenuOpen)} className="h-10 w-10 rounded-xl text-white/50 hover:text-white hover:bg-white/5 flex items-center justify-center group" title="Menu">
+            <MoreVertical size={20} className="group-hover:scale-110 transition-transform" />
+        </button>
+        <AnimatePresence>
+            {chatListMenuOpen && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    className="absolute right-0 top-12 w-48 bg-[#111114] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[100] flex flex-col"
+                >
+                    <Link to="/groups" className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors text-left">
+                        <Users size={16} /> Browse Groups
+                    </Link>
+                    <Link to="/settings" className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors text-left border-t border-white/5">
+                        <SettingsIcon size={16} /> Settings
+                    </Link>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    </div>
+</div>
                     </div>
-
                     <div className="p-3 bg-[#050505]">
                         <div className="h-10 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3 px-4">
                             <Search size={18} className="text-white/40" />
@@ -492,7 +610,12 @@ export const Messages = () => {
                             <>
                                 {filteredChats.map((chat) => (
                                     <button key={chat.id} onClick={() => setSelectedChatId(chat.id)} className={`w-full h-[72px] px-4 flex items-center gap-3 text-left border-b border-white/5 transition-colors ${selectedChatId === chat.id ? "bg-white/10" : "hover:bg-white/5"}`}>
-                                        <Avatar src={chat.partner.avatarUrl} alt={chat.partner.fullName} label={chat.partner.fullName} className="h-12 w-12 rounded-full object-cover bg-white/10 border border-white/10 relative" />
+                                        <div className="relative shrink-0">
+                                            <Avatar src={chat.partner.avatarUrl} alt={chat.partner.fullName} label={chat.partner.fullName} className="h-12 w-12 rounded-full object-cover bg-white/10 border border-white/10" />
+                                            {chat.partner.isOnline && (
+                                                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-[2.5px] border-[#0a0a0c]" />
+                                            )}
+                                        </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between gap-3">
                                                 <p className="text-[15px] text-white font-bold truncate">{chat.partner.fullName}</p>
@@ -515,25 +638,51 @@ export const Messages = () => {
                     {activeChat ? (
                         <>
                             <header className="h-16 px-3 md:px-5 bg-[#0a0a0c]/95 flex items-center gap-3 border-b border-white/5">
-                                <button onClick={() => { setSelectedChatId(null); setSearchParams({}, { replace: true }); }} className="md:hidden h-10 w-10 shrink-0 rounded-xl text-white/60 hover:text-white hover:bg-white/5 flex items-center justify-center z-50">
-                                    <ArrowLeft size={21} />
-                                </button>
+                                {!embeddedChatId && (<button onClick={() => { if (!embeddedChatId) { setSelectedChatId(null); setSearchParams({}, { replace: true }); } }} className="md:hidden h-10 w-10 shrink-0 rounded-xl text-white/60 hover:text-white hover:bg-white/5 flex items-center justify-center z-50"><ArrowLeft size={21} /></button>)}
                                 <Avatar src={activeChat.partner.avatarUrl} alt={activeChat.partner.fullName} label={activeChat.partner.fullName} className="h-10 w-10 rounded-full object-cover bg-white/10 border border-white/10" />
-                                <Link to={`/profile/${activeChat.partner.username}`} className="min-w-0 flex-1">
+                                <Link to={activeChat.partner.isGroup ? `/groups/${activeChat.partner.id}` : `/profile/${activeChat.partner.username}`} className="min-w-0 flex-1">
                                     <p className="text-[15px] font-bold text-white truncate">{activeChat.partner.fullName}</p>
                                     <p className="text-xs truncate transition-colors">
-                                        {activeChat.partner.isOnline ? (
-                                            <span className="text-green-500 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Online</span>
-                                        ) : activeChat.partner.lastSeen ? (
-                                            <span className="text-white/40">Last seen {activeChat.partner.lastSeen}</span>
-                                        ) : (
+                                        {activeChat.partner.isGroup ? (
+    <span className="text-white/60 text-xs">
+        {activeChat.participants?.length || 0} members,{' '}
+        <span className="text-green-500 font-bold">{activeChat.participants?.filter(p => p.is_online || p.isOnline)?.length || 0} online</span>
+    </span>
+) : activeChat.partner.isOnline ? (
+    <span className="text-green-500 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Online</span>
+) : activeChat.partner.lastSeen ? (
+    <span className="text-white/40">Last seen {activeChat.partner.lastSeen}</span>
+) : (
                                             <span className="text-white/40">Offline • Tap for profile</span>
                                         )}
                                     </p>
                                 </Link>
-                                <button onClick={() => setIsSuggestionsOpen(true)} className="h-10 w-10 rounded-xl text-white/50 hover:text-white hover:bg-white/5 flex items-center justify-center">
-                                    <MoreVertical size={20} />
-                                </button>
+                                <div className="relative">
+                                    <button onClick={() => setIsChatMenuOpen(!isChatMenuOpen)} className="h-10 w-10 rounded-xl text-white/50 hover:text-white hover:bg-white/5 flex items-center justify-center">
+                                        <MoreVertical size={20} />
+                                    </button>
+                                    <AnimatePresence>
+                                        {isChatMenuOpen && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                                className="absolute right-0 top-12 w-48 bg-[#111114] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 flex flex-col"
+                                            >
+                                                <Link to={activeChat?.partner?.isGroup ? `/groups/${activeChat?.partner?.id}` : `/profile/${activeChat?.partner?.username}`} onClick={() => setIsChatMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                                                    <User size={16} /> View {activeChat?.partner?.isGroup ? "Group Details" : "Profile"}
+                                                </Link>
+                                                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors text-left" onClick={() => { setIsChatMenuOpen(false); toggleConversationMuteMutation.mutate(activeChat.id); }}>
+                                                    {currentUser?.mutedConversations?.includes(String(activeChat?.id)) ? <Bell size={16} /> : <BellOff size={16} />} {currentUser?.mutedConversations?.includes(String(activeChat?.id)) ? "Unmute Conversation" : "Mute Conversation"}
+                                                </button>
+                                                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 transition-colors text-left" onClick={() => { setIsChatMenuOpen(false); if (activeChat?.partner?.isGroup) { leaveGroupMutation.mutate(activeChat.partner.id); } else { blockUserMutation.mutate(activeChat.partner.id); } }}>
+                                                    {activeChat?.partner?.isGroup ? <LogOut size={16} /> : <Ban size={16} />}
+                                                    {activeChat?.partner?.isGroup ? "Leave Group" : "Block User"}
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </header>
 
                             <div className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 md:px-10 py-6" onClick={() => setActiveMessageMenu(null)}>
@@ -557,6 +706,7 @@ export const Messages = () => {
                                                 const mine = String(msg.senderId) === String(currentUserId);
                                                 const showDate = index === 0 || msg.dateLabel !== messages[index - 1]?.dateLabel;
                                                 const repliedMsg = msg.replyToId ? messages.find(m => String(m.id) === String(msg.replyToId)) : null;
+     const isConsecutive = index > 0 && String(messages[index - 1].senderId) === String(msg.senderId) && !showDate;
 
                                                 return (
                                                     <React.Fragment key={msg.id}>
@@ -572,7 +722,12 @@ export const Messages = () => {
                                                                 <div className="flex-1 h-px bg-primary/20"></div>
                                                             </div>
                                                         )}
-                                                        <motion.div 
+        {msg.senderId === 'system' ? (
+        <div id={`msg-${msg.id}`} className="flex justify-center my-3 w-full">
+                <span className="bg-white/5 border border-white/10 rounded-2xl px-4 py-1.5 text-xs font-medium text-white/60 text-center mx-4 shadow-sm">{msg.content}</span>
+            </div>
+    ) : (
+        <motion.div id={`msg-${msg.id}`} 
                                                             initial={{ opacity: 0, y: 8 }} 
                                                             animate={{ opacity: 1, y: 0 }} 
                                                             drag="x"
@@ -585,7 +740,23 @@ export const Messages = () => {
                                                             }}
                                                             className={`flex group ${mine ? "justify-end" : "justify-start"} relative w-full`}
                                                         >
-                                                            <div className={`flex max-w-[82%] flex-col gap-1 sm:max-w-[70%] ${mine ? "items-end" : "items-start"}`}>
+                                                            <div className={`flex max-w-[82%] gap-2 sm:max-w-[70%] ${mine ? "flex-row-reverse items-end" : "flex-row items-end"}`}>
+                                                                {!mine && activeChat?.partner?.isGroup && (
+                                                                    <Link to={msg.sender?.username ? `/profile/${msg.sender.username}` : "#"} onClick={(e) => e.stopPropagation()} className="shrink-0 mb-6">
+                                                                        <Avatar src={msg.sender?.avatarUrl} alt={msg.sender?.fullName || "User"} label={msg.sender?.fullName || "U"} className="h-7 w-7 rounded-full border border-white/5 object-cover bg-white/5 hover:scale-105 transition-transform" />
+                                                                    </Link>
+                                                                )}
+                                                                <div className={`flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
+                                                                {msg.isForwarded && (
+                                                                    <div className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mb-0.5 ${mine ? "text-white/50 mr-1" : "text-white/40 ml-1"}`}>
+                                                                        <Share size={10} /> Forwarded
+                                                                    </div>
+                                                                )}
+                                                                {!mine && activeChat?.partner?.isGroup && (
+                                                                    <div className="text-[11px] font-bold tracking-wide ml-1" style={{ color: getUserColor(msg.sender?.id) }}>
+                                                                        {msg.sender?.fullName || msg.sender?.username || "Member"}
+                                                                    </div>
+                                                                )}
                                                                 
                                                                 {/* Context Menu Icon */}
                                                                 <div className={`absolute top-2 ${mine ? "-left-10" : "-right-10"} opacity-40 group-hover:opacity-100 transition-opacity`}>
@@ -599,10 +770,10 @@ export const Messages = () => {
                                                                                 </button>
                                                                                 <button onClick={() => { setMsgToForward(msg); setIsForwardModalOpen(true); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
                                                                                     <Share size={14} /> Forward
-                                                                                </button>
-                                                                                {navigator.share && (
-                                                                                    <button onClick={() => handleShare(msg, mine)} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
-                                                                                        <ExternalLink size={14} /> Share externally
+                                                                                  </button>
+{mine && (
+                                                                                    <button onClick={() => { setInfoMessage(msg); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
+                                                                                        <Info size={14} /> Message Info
                                                                                     </button>
                                                                                 )}
                                                                             {mine && (
@@ -623,8 +794,8 @@ export const Messages = () => {
                                                                     className={`rounded-2xl px-3 py-2 shadow-md border cursor-pointer select-none transition-all duration-500 ${highlightedMsgId === msg.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-[#0a0a0c] scale-[1.02]' : ''} ${mine ? "bg-primary text-black border-primary/20 rounded-br-md active:scale-[0.99] hover:brightness-[0.98]" : (!msg.isRead ? "bg-[#151512] text-white border-primary/20 rounded-bl-md shadow-[0_0_15px_rgba(196,255,14,0.04)] active:scale-[0.99]" : "bg-[#111114] text-white border-white/10 rounded-bl-md active:scale-[0.99] hover:bg-[#151519]")}`}
                                                                 >
                                                                     {repliedMsg && (
-                                                                        <div className={`mb-2 p-2 rounded-xl border-l-2 text-xs ${mine ? "bg-black/10 border-black text-black/70" : "bg-black/30 border-primary text-white/70"}`}>
-                                                                            <span className={`font-bold block mb-1 ${mine ? "text-black" : "text-primary"}`}>{String(repliedMsg.senderId) === String(currentUserId) ? "You" : (activeChat?.partner?.fullName || "User")}</span>
+        <div onClick={() => { document.getElementById(`msg-${repliedMsg.id}`)?.scrollIntoView({behavior: 'smooth', block: 'center'}); setHighlightedMsgId(repliedMsg.id); setTimeout(() => setHighlightedMsgId(null), 2000); }} className={`cursor-pointer hover:opacity-80 transition-opacity mb-2 p-2 rounded-xl border-l-2 text-xs ${mine ? "bg-black/10 border-black text-black/70" : "bg-black/30 border-primary text-white/70"}`}>
+                                                                            <span className={`font-bold block mb-1 ${mine ? "text-black" : "text-primary"}`}>{String(repliedMsg.senderId) === String(currentUserId) ? "You" : (repliedMsg.sender?.fullName || "User")}</span>
                                                                             {repliedMsg.isDeleted ? <em className={mine ? "text-black/50 italic" : "text-white/40 italic"}>This message was deleted</em> : repliedMsg.content || "Media"}
                                                                         </div>
                                                                     )}
@@ -706,21 +877,30 @@ export const Messages = () => {
                                                                 </div>
                                                                 <div className={`flex items-center gap-2 px-2 mt-1 text-[10px] ${mine ? "text-primary/70" : "text-white/40"}`}>
                                                                     <span>{msg.fullTimestamp || msg.timestamp}</span>
-                                                                    <button onClick={() => { setMsgToForward(msg); setIsForwardModalOpen(true); }} className="hover:text-white transition-colors flex items-center gap-1" title="Forward">
-                                                                        <Share size={12} /> <span className="hidden sm:inline">Forward</span>
-                                                                    </button>
-                                                                    {navigator.share && (
-                                                                        <button onClick={() => handleShare(msg, mine)} className="hover:text-white transition-colors flex items-center gap-1" title="Share Externally">
-                                                                            <ExternalLink size={12} /> <span className="hidden sm:inline">Share</span>
+                                                                    
+{mine && (
+                                                                        <button onClick={() => setInfoMessage(msg)} className="hover:text-white transition-colors flex items-center gap-1" title="Message Info">
+                                                                            <Info size={12} /> 
                                                                         </button>
                                                                     )}
                                                                     {mine && !msg.isDeleted && (
-                                                                        msg.isRead ? <CheckCheck size={14} className="text-[#3b82f6] ml-1" /> : activeChat?.partner?.isOnline ? <CheckCheck size={14} className="text-white/40 ml-1" /> : <Check size={14} className="text-white/40 ml-1" />
+                                                                        (() => {
+                                                                            if (!activeChat?.partner?.isGroup) {
+                                                                                return msg.isRead ? <CheckCheck size={14} className="text-[#3b82f6] ml-1" /> : <CheckCheck size={14} className="text-white/40 ml-1" />;
+                                                                            }
+                                                                            const seenCount = msg.seenByUsers?.length || 0;
+                                                                            const totalOthers = (activeChat?.participants?.length || 1) - 1;
+                                                                            if (seenCount === 0) return <Check size={14} className="text-white/40 ml-1" />;
+                                                                            if (seenCount > 0 && seenCount < totalOthers) return <CheckCheck size={14} className="text-white/40 ml-1" />;
+                                                                            return <CheckCheck size={14} className="text-[#3b82f6] ml-1" />;
+                                                                        })()
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                        </motion.div>
-                                                    </React.Fragment>
+                                                            </div>
+                                                          </motion.div>
+                                                          )}
+                                                      </React.Fragment>
                                                 );
                                             })}
                                         </AnimatePresence>
@@ -744,7 +924,7 @@ export const Messages = () => {
                                             <div className="flex-1 min-w-0 pr-4">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <Reply size={14} className="text-primary" />
-                                                    <span className="text-xs font-bold text-primary">Replying to {String(replyToMsg.senderId) === String(currentUserId) ? "yourself" : activeChat.partner.fullName}</span>
+                                                    <span className="text-xs font-bold text-primary">Replying to {String(replyToMsg.senderId) === String(currentUserId) ? "yourself" : replyToMsg?.sender?.fullName || activeChat.partner.fullName}</span>
                                                 </div>
                                                 <p className="text-sm text-white/70 truncate">{replyToMsg.isDeleted ? "Deleted message" : replyToMsg.content || "Media message"}</p>
                                             </div>
@@ -754,7 +934,17 @@ export const Messages = () => {
                                 )}
                             </AnimatePresence>
 
-                            <footer className="bg-[#0a0a0c]/95 border-t border-white/5 px-2 py-2 relative z-30 flex flex-col gap-2">
+                            {activeChat?.isLeft ? (
+                                <div className="px-5 py-4 bg-[#111114] text-white/50 text-center text-sm border-t border-white/5 flex flex-col items-center justify-center h-[72px]">
+                                    You are no longer a participant in this group.
+                                </div>
+                            ) : currentUser?.blockedUsers?.includes(String(activeChat?.partner?.id)) ? (
+                                <footer className="bg-[#0a0a0c]/95 border-t border-red-500/10 px-4 py-5 relative z-30 flex flex-col items-center justify-center text-center gap-3">
+                                    <p className="text-white/50 text-sm font-medium">You blocked this user. They cannot message you.</p>
+                                    <button onClick={() => unblockUserMutation.mutate(activeChat.partner.id)} className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition-colors">Unblock {activeChat.partner.fullName}</button>
+                                </footer>
+                            ) : (
+                                <footer className="bg-[#0a0a0c]/95 border-t border-white/5 px-2 py-2 relative z-30 flex flex-col gap-2">
                                 {attachmentPreview && (
                                     <div className="mx-2 mb-2 w-fit relative">
                                         {attachment?.type.startsWith("video/") ? <video src={attachmentPreview} className="h-28 rounded-lg border border-white/10" /> : attachment?.type.startsWith("image/") ? <img src={attachmentPreview} className="h-28 rounded-lg border border-white/10 object-cover" alt="" /> : (
@@ -805,12 +995,31 @@ export const Messages = () => {
                                                 )}
                                             </button>
 
-                                            <textarea 
+                                            
+    {mentionQuery !== null && activeChat?.participants && (
+        <div className="absolute bottom-full left-4 mb-2 w-64 bg-[#111114] border border-white/10 rounded-xl shadow-2xl p-2 z-50 max-h-48 overflow-y-auto">
+            {activeChat.participants.filter(p => p.username.toLowerCase().includes(mentionQuery) || p?.fullName?.toLowerCase().includes(mentionQuery)).map(p => (
+                <button key={p.id} onClick={(e) => {
+                    e.preventDefault();
+                    const words = messageText.split(' ');
+                    words[words.length - 1] = `@${p.username} `;
+                    handleMessageChange(words.join(' '));
+                    inputRef.current?.focus();
+                }} className="flex items-center gap-2 w-full p-2 text-left hover:bg-white/5 rounded-lg transition-colors">
+                    <Avatar src={p.avatarUrl} className="w-6 h-6 rounded-full bg-white/10" />
+                    <span className="text-white text-sm font-semibold">{p.fullName}</span>
+                    <span className="text-white/40 text-xs">@{p.username}</span>
+                </button>
+            ))}
+        </div>
+    )}
+
+<textarea 
                                                 ref={inputRef}
                                                 value={messageText} 
                                                 onChange={(e) => {
                                                     const val = e.target.value;
-                                                    setMessageText(val);
+                                                    handleMessageChange(val);
                                                     if (selectedChatId && window.socket) {
                                                         if (!isWeTyping) {
                                                             setIsWeTyping(true);
@@ -855,6 +1064,7 @@ export const Messages = () => {
                                     </div>
                                 )}
                             </footer>
+                            )}
                         </>
                     ) : (
                         <div className="flex-1 flex items-center justify-center text-center px-8">
@@ -953,10 +1163,14 @@ export const Messages = () => {
                                     <button 
                                         key={chat.id} 
                                         onClick={() => {
-                                            const senderName = String(msgToForward.senderId) === String(currentUserId) ? currentUser?.fullName : activeChat?.partner?.fullName;
-                                            const mediaStr = [msgToForward.imageUrl, msgToForward.videoUrl, msgToForward.fileUrl].filter(Boolean).join('\n');
-                                            const fwdContent = `Forwarded from ${senderName}:\n\n${msgToForward.content || ''}${mediaStr ? '\n' + mediaStr : ''}`;
-                                            sendMessageMutation.mutate({ chatId: chat.id, content: fwdContent });
+                                            const fwdContent = msgToForward.content || '';
+                                            const fwdMedia = {
+                                                imageUrl: msgToForward.imageUrl,
+                                                videoUrl: msgToForward.videoUrl,
+                                                fileUrl: msgToForward.fileUrl,
+                                                audioUrl: msgToForward.audioUrl
+                                            };
+                                            sendMessageMutation.mutate({ chatId: chat.id, content: fwdContent, isForwarded: true, forwardedMedia: fwdMedia });
                                             setIsForwardModalOpen(false);
                                             setMsgToForward(null);
                                             toast("Message forwarded", "success");
@@ -978,6 +1192,56 @@ export const Messages = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Message Info Modal */}
+            <AnimatePresence>
+                {infoMessage && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setInfoMessage(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+                        
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} className="relative w-full max-w-sm rounded-[2rem] border border-white/10 bg-[#0a0a0c] p-5 shadow-2xl flex flex-col max-h-[80vh]">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-white tracking-tight">Message Info</h3>
+                                <button onClick={() => setInfoMessage(null)} className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-colors">
+                                    <X size={16} />
+                                </button>
+                            </div>
+                            
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 mb-5">
+                                <p className="text-sm text-white/80 line-clamp-3">{infoMessage.content || "Media message"}</p>
+                                <p className="text-xs text-white/40 mt-2 font-medium">{infoMessage.fullTimestamp || infoMessage.timestamp}</p>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-primary mb-3">Read By</h4>
+                                
+                                {!infoMessage.seenByUsers || infoMessage.seenByUsers.length === 0 ? (
+                                    <p className="text-sm text-white/40 text-center py-4">No one has read this yet.</p>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {infoMessage.seenByUsers.map((seen, i) => (
+                                            <div key={i} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar src={seen.user?.avatarUrl} alt={seen.user?.fullName} label={seen.user?.fullName} className="h-10 w-10 rounded-full border border-white/10 object-cover" />
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">{seen.user?.fullName}</p>
+                                                        <p className="text-xs text-white/40">@{seen.user?.username}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <CheckCheck size={16} className="text-[#3b82f6] ml-auto mb-1" />
+                                                    <p className="text-[10px] text-white/40">{new Date(seen.seenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
+
