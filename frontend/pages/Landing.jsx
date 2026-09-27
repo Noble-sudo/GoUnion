@@ -178,21 +178,46 @@ const APP_STEPS = [
   { icon: Users, title: "Meet your people", body: "Follow campus conversations, join circles, and message classmates naturally." },
 ];
 
-const AppFirstSection = ({ itemVariants }) => (
+const AppFirstSection = ({ itemVariants, onInstall, isInstalled, showIosHint, onCloseIosHint }) => (
   <section className="px-5 md:px-8 pb-28 pt-10 relative z-20">
+    {/* iOS Add to Home Screen hint */}
+    <AnimatePresence>
+      {showIosHint && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-end bg-black/60 backdrop-blur-sm p-4 pb-8"
+          onClick={onCloseIosHint}
+        >
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#0f0f12] p-6 text-center shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mb-4 flex h-14 w-14 mx-auto items-center justify-center rounded-2xl bg-[var(--rc-go)]/10">
+              <Smartphone size={28} className="text-[var(--rc-go)]" />
+            </div>
+            <h3 className="text-xl font-black text-white mb-2">Install on iPhone</h3>
+            <p className="text-sm text-white/60 mb-4 leading-relaxed">
+              Tap the <span className="font-bold text-white">Share</span> button at the bottom of Safari, then scroll down and tap <span className="font-bold text-white">"Add to Home Screen"</span>.
+            </p>
+            {/* Arrow pointing down */}
+            <div className="flex justify-center text-3xl mb-2">⬇</div>
+            <button onClick={onCloseIosHint} className="mt-2 text-xs text-white/40 hover:text-white font-bold uppercase tracking-widest">Got it</button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
     <div className="max-w-6xl mx-auto rounded-[2.5rem] border border-[var(--rc-go)]/15 bg-gradient-to-br from-[#0c100a] to-[#040506] p-8 shadow-[0_24px_70px_rgba(199,249,79,0.06)] md:p-12 lg:p-16 relative overflow-hidden">
-      
-      {/* Background glow for warmth */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[var(--rc-go)]/10 blur-[140px] -translate-y-1/2 translate-x-1/3 rounded-full pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-white/5 blur-[100px] translate-y-1/3 -translate-x-1/3 rounded-full pointer-events-none" />
 
       <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1fr_1fr] relative z-10">
-        <motion.div
-          variants={itemVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
+        <motion.div variants={itemVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--rc-go)]/30 bg-[var(--rc-go)]/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--rc-go)]">
             <Smartphone size={14} />
             Best Experience
@@ -201,12 +226,21 @@ const AppFirstSection = ({ itemVariants }) => (
             Get the native feel.
           </h2>
           <p className="text-lg leading-relaxed text-white/60 mb-8 max-w-lg">
-            Reconnected is built for your phone. Install the app to stay plugged into your campus with instant notifications, smoother navigation, and offline access. It takes two seconds.
+            Reconnected is built for your phone. Install the app for instant notifications, smoother navigation, and offline access. It takes two seconds.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Link to="/download" className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-white px-8 text-sm font-black text-black shadow-lg shadow-white/10 transition hover:bg-white/90 hover:scale-[1.02]">
-              <Download size={18} /> Install App
-            </Link>
+            {isInstalled ? (
+              <div className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-[var(--rc-go)]/20 border border-[var(--rc-go)]/30 px-8 text-sm font-black text-[var(--rc-go)]">
+                <Check size={18} /> App Installed!
+              </div>
+            ) : (
+              <button
+                onClick={onInstall}
+                className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-white px-8 text-sm font-black text-black shadow-lg shadow-white/10 transition hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Download size={18} /> Install App
+              </button>
+            )}
             <Link to="/login" className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-8 text-sm font-bold text-white transition hover:bg-white/10">
               Continue in Browser
             </Link>
@@ -244,7 +278,36 @@ const AppFirstSection = ({ itemVariants }) => (
 
 export const Landing = () => {
   const { isAuthenticated } = useAuthStore();
-  
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [showIosHint, setShowIosHint] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      setIsInstalled(true);
+      return;
+    }
+    // Read the already-captured prompt (set in index.html before React mounted)
+    if (window.deferredPWAInstallPrompt) {
+      setInstallPrompt(window.deferredPWAInstallPrompt);
+    }
+    // Also wire a callback in case the event fires later
+    window.updatePwaStorePrompt = (e) => setInstallPrompt(e);
+    window.addEventListener('appinstalled', () => setIsInstalled(true));
+    return () => {
+      window.updatePwaStorePrompt = null;
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) { setShowIosHint(true); return; }
+    if (!installPrompt) { window.location.href = '/download'; return; }
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setInstallPrompt(null);
+  };
+
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
@@ -356,7 +419,7 @@ export const Landing = () => {
           </motion.div>
         </section>
 
-        <AppFirstSection itemVariants={itemVariants} />
+        <AppFirstSection itemVariants={itemVariants} onInstall={handleInstallClick} isInstalled={isInstalled} showIosHint={showIosHint} onCloseIosHint={() => setShowIosHint(false)} />
 
         {/* Product Showcase - 3 Phone Spread */}
         <section className="px-5 md:px-8 pb-32 pt-8 relative z-20">
