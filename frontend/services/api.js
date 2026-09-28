@@ -1,13 +1,14 @@
-/// <reference types="vite/client" />
+﻿/// <reference types="vite/client" />
 import axios from 'axios';
 import { useAuthStore } from '../store';
 import { formatTimeAgo } from '../utils/format';
 import { authStorage } from '../utils/persistentStorage';
-const configuredApiUrl = import.meta.env.VITE_API_URL ||
-    (import.meta.env.DEV ? `http://${window.location.hostname}:8001/api` : '/api');
-export const API_URL = configuredApiUrl.replace(/\/+$/, '').endsWith('/api')
-    ? configuredApiUrl.replace(/\/+$/, '')
-    : `${configuredApiUrl.replace(/\/+$/, '')}/api`;
+const configuredApiUrl = String(import.meta.env.VITE_API_URL || '').trim() ||
+    (import.meta.env.DEV
+        ? `http://${window.location.hostname}:8001/api`
+        : 'https://gounion-backend-3hde.onrender.com/api');
+// Always end with exactly one "/api", however the URL was configured
+export const API_URL = `${configuredApiUrl.replace(/\/+$/, '').replace(/(\/api)+$/, '')}/api`;
 // Create Axios instance
 // 120 s default — enough for a Render free-tier cold start (~30-90 s)
 export const apiClient = axios.create({
