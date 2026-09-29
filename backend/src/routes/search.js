@@ -14,10 +14,9 @@ searchRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const q = regex(req.query.q);
-    const users = await User.find(institutionScopedQuery(req.user, {
-        id: { $ne: req.user.id },
-        $or: [{ username: q }, { email: q }, { 'profile.full_name': q }],
-      })).limit(50);
+    const baseQuery = { id: { $ne: req.user.id }, $or: [{ username: q }, { email: q }, { 'profile.full_name': q }] };
+    const query = req.query.scope === 'global' ? baseQuery : institutionScopedQuery(req.user, baseQuery);
+    const users = await User.find(query).limit(50);
     res.json(await Promise.all(users.map((user) => publicUser(user, req.user.id))));
   }),
 );
@@ -26,7 +25,9 @@ searchRouter.get(
   '/posts',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const posts = await Post.find(institutionScopedQuery(req.user, { caption: regex(req.query.q), is_taken_down: { $ne: true } })).sort({ created_at: -1 }).limit(50);
+    const baseQuery = { caption: regex(req.query.q), is_taken_down: { $ne: true }, group_id: null };
+    const query = req.query.scope === 'global' ? baseQuery : institutionScopedQuery(req.user, baseQuery);
+    const posts = await Post.find(query).sort({ created_at: -1 }).limit(50);
     res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
   }),
 );
@@ -36,7 +37,9 @@ searchRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const q = regex(req.query.q);
-    const groups = await Group.find(institutionScopedQuery(req.user, { is_active: true, $or: [{ name: q }, { description: q }] })).limit(50);
+    const baseQuery = { is_active: true, $or: [{ name: q }, { description: q }] };
+    const query = req.query.scope === 'global' ? baseQuery : institutionScopedQuery(req.user, baseQuery);
+    const groups = await Group.find(query).limit(50);
     res.json(await Promise.all(groups.map((group) => serializeGroup(group, req.user.id))));
   }),
 );

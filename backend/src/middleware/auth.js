@@ -20,10 +20,12 @@ export const requireAuth = async (req, _res, next) => {
     // Load active campus identity
     if (user.active_identity_id) {
       const identity = await StudentIdentity.findOne({ id: user.active_identity_id }).lean();
-      if (identity && ['VERIFIED', 'LEGACY_UNVERIFIED'].includes(identity.status)) {
-        req.user.institution_id = identity.institution_id;
-      } else {
-        req.user.institution_id = null;
+      if (!['admin', 'moderator'].includes(user.role)) {
+        if (identity && ['VERIFIED', 'LEGACY_UNVERIFIED'].includes(identity.status)) {
+          req.user.institution_id = identity.institution_id;
+        } else {
+          req.user.institution_id = null;
+        }
       }
     }
 

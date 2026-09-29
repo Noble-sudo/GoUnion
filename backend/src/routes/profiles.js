@@ -17,7 +17,7 @@ profilesRouter.get(
   asyncHandler(async (req, res) => {
     const user = await User.findOne({ username: new RegExp(`^${req.params.username}$`, 'i') });
     if (!user) throw notFound('Profile not found.');
-    assertSameInstitution(user, req.user, 'Profile');
+    // Profiles are globally visible (Konnect feature)
     
     // Add profile view notification logic
     if (user.id !== req.user.id) {

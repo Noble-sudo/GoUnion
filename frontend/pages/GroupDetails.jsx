@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Users, Shield, Globe, Lock, Share2, Calendar, Edit, X, Check } from "lucide-react";
+import { ArrowLeft, Users, Shield, Globe, Lock, Share2, Calendar, Edit, X, Check, Search, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, getFullUrl } from "../services/api";
 import { useAuthStore } from "../store";
@@ -40,6 +40,100 @@ const JoinRequestModal = ({ isOpen, onClose, onSubmit }) => {
           <button onClick={() => onSubmit(message)} className="px-5 py-2.5 rounded-xl bg-[var(--rc-go)] text-black text-sm font-bold hover:bg-[#b0eb38] transition-colors">Submit Request</button>
         </div>
       </motion.div>
+    </div>
+  );
+};
+
+const AddMemberWidget = ({ groupId, currentMembers, onAdded }) => {
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { data: searchResults, isLoading } = useQuery({
+    queryKey: ['circle-user-search', debouncedQuery],
+    queryFn: () => api.search.users(debouncedQuery),
+    enabled: debouncedQuery.length > 2,
+  });
+
+  const addMutation = useMutation({
+    mutationFn: (userId) => api.groups.addMember(groupId, userId),
+    onSuccess: (data) => {
+      if (data.status === 'already_member') {
+        toast.show("User is already a member", "warning");
+      } else {
+        toast.show("Member added successfully", "success");
+        setQuery("");
+        onAdded();
+      }
+    },
+    onError: () => toast.show("Failed to add member", "error")
+  });
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+        <input 
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name or @username..."
+          className="w-full bg-[#0a0a0c] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[var(--rc-go)]/50 transition-colors"
+        />
+        {query && (
+          <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {query.length > 2 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
+            className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0c] border border-white/10 rounded-xl shadow-xl overflow-hidden z-20 max-h-64 overflow-y-auto"
+          >
+            {isLoading ? (
+              <div className="p-4 text-center text-sm text-white/50">Searching...</div>
+            ) : searchResults?.length > 0 ? (
+              <div className="divide-y divide-white/5">
+                {searchResults.map(user => {
+                  const isAlreadyMember = currentMembers.some(m => String(m.user_id) === String(user.id || user._id));
+                  return (
+                    <div key={user.id || user._id} className="p-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+                      <div className="flex items-center gap-3">
+                        <img src={user.avatar ? getFullUrl(user.avatar) : `https://ui-avatars.com/api/?name=${user.username}&background=random`} alt="" className="w-8 h-8 rounded-full object-cover" />
+                        <div>
+                          <p className="text-sm font-bold text-white leading-tight">{user.name}</p>
+                          <p className="text-xs text-white/40">@{user.username}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => addMutation.mutate(user.id || user._id)}
+                        disabled={isAlreadyMember || addMutation.isPending}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                          isAlreadyMember 
+                            ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                            : 'bg-[var(--rc-go)] text-black hover:bg-[#b0eb38]'
+                        }`}
+                      >
+                        {isAlreadyMember ? 'Added' : 'Add'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-4 text-center text-sm text-white/50">No users found</div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -260,7 +354,19 @@ export const GroupDetails = () => {
 
           {/* PEOPLE TAB */}
           {activeTab === "people" && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-6">
+              {isAdmin && (
+                <div className="rounded-3xl border border-[var(--rc-go)]/20 bg-[var(--rc-go)]/5 p-4 sm:p-6">
+                  <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-[var(--rc-go)]" /> Add New Member
+                  </h3>
+                  <p className="text-sm text-white/50 mb-4">Search for users by username or name to add them to this circle.</p>
+                  
+                  <AddMemberWidget groupId={id} currentMembers={members} onAdded={() => queryClient.invalidateQueries({ queryKey: ["group-members", id] })} />
+                </div>
+              )}
+              
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {[...members].sort((a, b) => {
                   const roleScore = { admin: 3, moderator: 2, member: 1 };
                   const scoreA = roleScore[a.role] || 0;
@@ -290,6 +396,7 @@ export const GroupDetails = () => {
                 </div>
               ))}
             </div>
+          </div>
           )}
 
           {/* EVENTS TAB */}

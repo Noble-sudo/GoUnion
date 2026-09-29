@@ -106,8 +106,8 @@ usersRouter.get(
   asyncHandler(async (req, res) => {
     const target = await User.findOne({ id: req.params.id });
     if (!target) throw notFound('User not found.');
-    assertSameInstitution(target, req.user, 'Profile');
-    const posts = await Post.find(institutionScopedQuery(req.user, { user_id: req.params.id, is_taken_down: { $ne: true } })).sort({ created_at: -1 }).limit(Number(req.query.limit || 50));
+    // Profiles are globally visible (Konnect)
+    const posts = await Post.find({ user_id: req.params.id, is_taken_down: { $ne: true } }).sort({ created_at: -1 }).limit(Number(req.query.limit || 50));
     res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
   }),
 );
@@ -118,7 +118,7 @@ usersRouter.post(
   asyncHandler(async (req, res) => {
     const target = await User.findOne({ id: req.params.id });
     if (!target) throw notFound('User not found.');
-    assertSameInstitution(target, req.user, 'Profile');
+    // Following is globally allowed (Konnect)
     if (target.id !== req.user.id) {
       await Follow.updateOne({ follower_id: req.user.id, following_id: target.id }, { $setOnInsert: { follower_id: req.user.id, following_id: target.id } }, { upsert: true });
       await addNotification({ user_id: target.id, sender_id: req.user.id, type: 'follow' });

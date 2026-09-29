@@ -23,9 +23,16 @@ postsRouter.get(
   '/feed',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const query = req.query.reels === 'true'
-      ? institutionScopedQuery(req.user, { video: { $nin: [null, ''] }, is_taken_down: { $ne: true } })
-      : institutionScopedQuery(req.user, { is_taken_down: { $ne: true } });
+    const baseQuery = req.query.reels === 'true'
+      ? { video: { $nin: [null, ''] }, is_taken_down: { $ne: true }, group_id: null }
+      : { is_taken_down: { $ne: true }, group_id: null };
+    
+    let query = baseQuery;
+    if (req.query.target_institution_id) {
+      query.institution_id = req.query.target_institution_id;
+    } else if (req.query.scope !== 'global') {
+      query = institutionScopedQuery(req.user, baseQuery);
+    }
     const posts = await Post.find(query).sort({ created_at: -1 }).skip(Number(req.query.skip || 0)).limit(Number(req.query.limit || 10));
     res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
   }),
@@ -105,7 +112,7 @@ postsRouter.get(
   asyncHandler(async (req, res) => {
     const post = await Post.findOne({ id: req.params.id });
     if (!post) throw notFound('Post not found.');
-    assertSameInstitution(post, req.user, 'Drop');
+    // Posts are globally accessible (Konnect)
     res.json(await serializePost(post, req.user.id));
   }),
 );
@@ -116,7 +123,7 @@ postsRouter.delete(
   asyncHandler(async (req, res) => {
     const post = await Post.findOne({ id: req.params.id });
     if (!post) throw notFound('Post not found.');
-    assertSameInstitution(post, req.user, 'Drop');
+    // Posts are globally accessible (Konnect)
     if (post.user_id !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) throw forbidden('You cannot delete this post.');
     await Post.deleteOne({ id: post.id });
     await Comment.deleteMany({ post_id: post.id });
@@ -130,7 +137,7 @@ postsRouter.post(
   asyncHandler(async (req, res) => {
     const post = await Post.findOne({ id: req.params.id });
     if (!post) throw notFound('Post not found.');
-    assertSameInstitution(post, req.user, 'Drop');
+    // Posts are globally accessible (Konnect)
     if (post.likes.includes(req.user.id)) post.likes = post.likes.filter((id) => id !== req.user.id);
     else {
       post.likes.push(req.user.id);
@@ -147,7 +154,7 @@ postsRouter.get(
   asyncHandler(async (req, res) => {
     const post = await Post.findOne({ id: req.params.id });
     if (!post) throw notFound('Post not found.');
-    assertSameInstitution(post, req.user, 'Drop');
+    // Posts are globally accessible (Konnect)
     const comments = await Comment.find({ post_id: req.params.id }).sort({ created_at: 1 });
     res.json(await Promise.all(comments.map((comment) => serializeComment(comment, req.user.id))));
   }),
@@ -159,7 +166,7 @@ postsRouter.post(
   asyncHandler(async (req, res) => {
     const post = await Post.findOne({ id: req.params.id });
     if (!post) throw notFound('Post not found.');
-    assertSameInstitution(post, req.user, 'Drop');
+    // Posts are globally accessible (Konnect)
     if (!req.body.content) throw new HttpError(400, 'content is required.');
     const comment = await Comment.create({ user_id: req.user.id, post_id: post.id, content: req.body.content, likes: [] });
     await notifyMentions({
@@ -181,7 +188,7 @@ postsRouter.post(
   asyncHandler(async (req, res) => {
     const post = await Post.findOne({ id: req.params.id });
     if (!post) throw notFound('Post not found.');
-    assertSameInstitution(post, req.user, 'Drop');
+    // Posts are globally accessible (Konnect)
     await PostView.updateOne(
       { post_id: post.id, user_id: req.user.id },
       { $setOnInsert: { post_id: post.id, user_id: req.user.id } },

@@ -85,7 +85,7 @@ export const Dashboard = () => {
   const universityName = user?.university || user?.institution?.name || "Campus";
 
   return (
-    <div className="w-full overflow-x-hidden px-0 pb-24 pt-0">
+    <div className="w-full px-0 pb-24 pt-0">
       <WelcomeTour />
       
       {/* Campus Header */}
@@ -125,12 +125,12 @@ export const Dashboard = () => {
 
         {/* Tab System */}
         <div className="px-5 sm:px-0 mb-6 mt-0">
-          <div className="flex items-center gap-1 border-b border-white/10 pb-px">
+          <div className="flex items-center justify-between sm:justify-start sm:gap-1 border-b border-white/10 pb-px">
             {TABS.map(tab => (
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative px-4 py-3 text-sm font-bold transition-colors ${activeTab === tab.id ? 'text-white' : 'text-white/40 hover:text-white/80'}`}
+                className={`flex-1 sm:flex-none relative px-2 sm:px-4 py-3 text-sm font-bold transition-colors text-center ${activeTab === tab.id ? 'text-white' : 'text-white/40 hover:text-white/80'}`}
               >
                 {tab.label}
                 {activeTab === tab.id && (

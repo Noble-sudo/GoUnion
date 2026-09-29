@@ -137,6 +137,7 @@ const postSchema = new Schema(
   {
     id: { type: String, unique: true, default: makeId, index: true },
     user_id: { type: String, required: true, index: true },
+    institution_id: { type: String, default: null, index: true },
     group_id: { type: String, default: null, index: true },
     caption: { type: String, default: '' },
     image: { type: String, default: null },
@@ -149,6 +150,7 @@ const postSchema = new Schema(
   baseOptions,
 );
 postSchema.index({ created_at: -1 });
+postSchema.index({ institution_id: 1, created_at: -1 });
 postSchema.index({ user_id: 1, created_at: -1 });
 postSchema.index({ group_id: 1, created_at: -1 });
 
@@ -281,6 +283,7 @@ const storySchema = new Schema(
   {
     id: { type: String, unique: true, default: makeId, index: true },
     user_id: { type: String, required: true, index: true },
+    institution_id: { type: String, default: null, index: true },
     content: { type: String, default: '' },
     image_url: { type: String, default: null },
     expires_at: { type: Date, required: true },
@@ -288,6 +291,7 @@ const storySchema = new Schema(
   baseOptions,
 );
 storySchema.index({ created_at: -1 });
+storySchema.index({ institution_id: 1, expires_at: 1 });
 
 const storyViewSchema = new Schema(
   {

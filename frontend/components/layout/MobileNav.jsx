@@ -52,16 +52,20 @@ export const MobileNav = () => {
         { icon: Settings, label: "Settings", path: "/settings" },
     ];
 
+    const isKonnect = location.pathname === "/konnect" || location.pathname.startsWith("/institutions/");
+    const activeTextClass = isKonnect ? "text-cyan-400" : "text-primary";
+    const activeBgLightClass = isKonnect ? "bg-cyan-400/10" : "bg-primary/10";
+
     const renderNavItem = (item) => (
         <NavLink key={item.path} to={item.path} onClick={() => {
             if (location.pathname === "/" && item.path === "/") window.dispatchEvent(new Event("gounion-refresh-feed"));
             if (location.pathname === "/konnect" && item.path === "/konnect") window.dispatchEvent(new Event("gounion-refresh-goto"));
-        }} className={({ isActive }) => `relative flex flex-col items-center justify-center h-full flex-1 transition-all duration-300 ${isActive ? "text-primary" : "text-white/40 hover:text-white/80"}`}>
+        }} className={({ isActive }) => `relative flex flex-col items-center justify-center h-full flex-1 transition-all duration-300 ${isActive ? activeTextClass : "text-white/40 hover:text-white/80"}`}>
             {({ isActive }) => (
                 <>
-                    {isActive && (<motion.div layoutId="activeTab" className="absolute inset-0 bg-primary/10 rounded-xl" transition={{ type: "spring", duration: 0.5 }} />)}
+                    {isActive && (<motion.div layoutId="activeTab" className={`absolute inset-0 ${activeBgLightClass} rounded-xl`} transition={{ type: "spring", duration: 0.5 }} />)}
                     <div className="relative">
-                        <item.icon size={22} className={`relative z-10 transition-transform ${isActive ? "scale-110 text-primary" : ""}`} />
+                        <item.icon size={22} className={`relative z-10 transition-transform ${isActive ? `scale-110 ${activeTextClass}` : ""}`} />
                         {item.badge > 0 && (
                             <span className="absolute -top-1.5 -right-2 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] z-20">
                                 {item.badge > 99 ? '99+' : item.badge}
@@ -82,7 +86,7 @@ export const MobileNav = () => {
                 </div>
 
                 <div className="relative -top-5 px-2">
-                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="relative flex items-center justify-center w-14 h-14 rounded-full bg-primary text-black font-serif font-black text-2xl shadow-[0_4px_20px_rgba(196,255,14,0.4)] transition-transform hover:scale-105 active:scale-95 z-[165]">
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`relative flex items-center justify-center w-14 h-14 rounded-full ${isKonnect ? 'bg-cyan-400 shadow-[0_4px_20px_rgba(34,211,238,0.4)]' : 'bg-primary shadow-[0_4px_20px_rgba(196,255,14,0.4)]'} text-black font-serif font-black text-2xl transition-transform hover:scale-105 active:scale-95 z-[165]`}>
                         R
                         {unreadCount > 0 && (
                             <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-[#050505]" />

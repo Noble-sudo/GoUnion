@@ -11,6 +11,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
 import { Konnect } from "./pages/Konnect";
 import { Teaky } from "./pages/Teaky";
+import { InstitutionFeed } from "./pages/InstitutionFeed";
 import { Login } from "./pages/Login";
 import { ForgotPassword } from "./pages/ForgotPassword";
 import { ResetPassword } from "./pages/ResetPassword";
@@ -42,17 +43,18 @@ const queryClient = new QueryClient({
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const isMessages = location.pathname === '/messages' || (location.pathname.startsWith('/groups/') && location.pathname !== '/groups');
+  const isKonnect = location.pathname === '/konnect' || location.pathname.startsWith('/institutions/');
   
   return (
     <div className="flex min-h-screen bg-[var(--rc-bg)] text-white selection:bg-[var(--rc-go)] selection:text-black">
       <Sidebar />
-      <div className="flex-1 pb-20 md:ml-[72px] lg:ml-[260px] md:pb-0 lg:mr-[300px]">
-        <TopNav />
-        <main className={isMessages ? "w-full" : "px-4 py-6 md:px-8 max-w-5xl mx-auto"}>
+      <div className={`flex-1 pb-20 md:ml-[72px] lg:ml-[260px] md:pb-0 ${!isMessages && !isKonnect ? 'lg:mr-[300px]' : ''}`}>
+        {!isKonnect && <TopNav />}
+        <main className={isMessages || isKonnect ? "w-full" : "px-4 py-6 md:px-8 max-w-5xl mx-auto"}>
           {children}
         </main>
       </div>
-      {!isMessages && <RightSidebar />}
+      {!isMessages && !isKonnect && <RightSidebar />}
       {!isMessages && <MobileNav />}
     </div>
   );
@@ -96,7 +98,7 @@ const AppRoutes = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
         
-        <Route path="/" element={isAuthenticated ? <PrivateRoute><Dashboard /></PrivateRoute> : <Landing />} />
+        <Route path="/" element={isAuthenticated ? <PrivateRoute><Dashboard /></PrivateRoute> : <Navigate to="/login" replace />} />
         
         {/* Onboarding doesn't use the standard layout to avoid distractions */}
         <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Navigate to="/login" />} />
@@ -108,6 +110,7 @@ const AppRoutes = () => {
         <Route path="/post/:id" element={<PrivateRoute><PostDetail /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute noLayout><AdminPanel /></PrivateRoute>} />
         <Route path="/konnect" element={<PrivateRoute><Konnect /></PrivateRoute>} />
+        <Route path="/institutions/:id" element={<PrivateRoute><InstitutionFeed /></PrivateRoute>} />
         <Route path="/teaky" element={<PrivateRoute><Teaky /></PrivateRoute>} />
         <Route path="/sound/:soundName" element={<PrivateRoute><SoundFeed /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />

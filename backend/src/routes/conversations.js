@@ -47,9 +47,7 @@ conversationsRouter.post(
       // Ensure all participants belong to the same campus
       const usersToCheck = await User.find({ id: { $in: participantIds } });
       for (const p of usersToCheck) {
-        if (p.id !== req.user.id) {
-          assertSameInstitution(p, req.user, 'User');
-        }
+        // Cross-campus messaging allowed via Konnect
       }
       
       const key = participantKey(participantIds);

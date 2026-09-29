@@ -20,7 +20,7 @@ export const Login = () => {
   const { login } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [isWakingUp, setIsWakingUp] = useState(false);
-  const [isSignup, setIsSignup] = useState(searchParams.get("isSignup") === "true");
+  const [isSignup, setIsSignup] = useState(searchParams.get("isSignup") !== "false");
   const [step, setStep] = useState(0);
   const [error, setError] = useState(null);
   const [institutions, setInstitutions] = useState([]);

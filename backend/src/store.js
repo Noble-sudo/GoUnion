@@ -63,7 +63,10 @@ export const publicUser = async (userOrId, viewerId = null) => {
     viewerId ? Follow.exists({ follower_id: viewerId, following_id: plain.id }) : null,
     plain.active_identity_id ? (await import('./models.js')).StudentIdentity.findOne({ id: plain.active_identity_id }).lean() : Promise.resolve(null)
   ]);
-  const institutionId = activeIdentity?.institution_id || plain.institution_id || null;
+  const isAdminRole = ['admin', 'moderator'].includes(plain.role);
+  const institutionId = isAdminRole
+    ? (plain.institution_id || activeIdentity?.institution_id || null)
+    : (activeIdentity?.institution_id || plain.institution_id || null);
   const institution = institutionId ? await resolveInstitutionSelection({ institutionId }) : null;
   const profile = {
     ...(plain.profile || {}),

@@ -159,7 +159,10 @@ groupsRouter.get(
   '/',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const groups = await Group.find(institutionScopedQuery(req.user, { is_active: true })).sort({ created_at: -1 });
+    const query = req.query.scope === 'global' 
+      ? { is_active: true }
+      : institutionScopedQuery(req.user, { is_active: true });
+    const groups = await Group.find(query).sort({ created_at: -1 });
     res.json(await Promise.all(groups.map((group) => serializeGroup(group, req.user.id))));
   }),
 );
@@ -441,5 +444,49 @@ groupsRouter.delete(
     }
 
     res.json({ status: 'removed' });
+  }),
+);
+
+// Circle admin: add member directly
+groupsRouter.post(
+  '/:id/members/add',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const group = await Group.findOne({ id: req.params.id });
+    if (!group) throw notFound('Circle not found.');
+    if (!(await canManage(group.id, req.user))) throw forbidden('Only circle admins can add members.');
+
+    const { user_id } = req.body;
+    if (!user_id) throw new (await import('../utils/httpError.js')).HttpError(400, 'user_id is required.');
+
+    const target = await User.findOne({ id: user_id });
+    if (!target) throw notFound('User not found.');
+
+    // Check if already a member
+    const existing = await GroupMember.findOne({ group_id: group.id, user_id: target.id });
+    if (existing) return res.json({ status: 'already_member' });
+
+    // Add as member
+    await GroupMember.create({ group_id: group.id, user_id: target.id, role: 'member' });
+
+    // Add to group conversation if it exists
+    const conv = await Conversation.findOne({ group_id: group.id });
+    if (conv) {
+      if (!conv.participant_ids.includes(target.id)) {
+        conv.participant_ids.push(target.id);
+        await conv.save();
+      }
+    }
+
+    // Remove any pending request
+    await GroupRequest.deleteMany({ group_id: group.id, user_id: target.id });
+
+    // Notify the added user
+    const adminName = req.user.profile?.full_name || req.user.username;
+    await addNotification({ user_id: target.id, sender_id: req.user.id, type: 'group_invite', group_id: group.id, message: `${adminName} added you to ${group.name}` });
+
+    await createGroupSystemMessage(group.id, `${target.profile?.full_name || target.username} was added by ${adminName}`);
+
+    res.json({ status: 'added' });
   }),
 );
