@@ -172,7 +172,7 @@ const ThreePhoneShowcase = () => {
 };
 
 const APP_STEPS = [
-  { icon: Download, title: "Download the app", body: "Start from your phone so GoUnion feels native from the first tap." },
+  { icon: Download, title: "Download the app", body: "Start from your phone so Reconnected feels native from the first tap." },
   { icon: GraduationCap, title: "Choose your campus", body: "Find your university, polytechnic, or college and enter the right community." },
   { icon: Shield, title: "Verify your identity", body: "Confirm you are a real student before you post, chat, or join groups." },
   { icon: Users, title: "Meet your people", body: "Follow campus conversations, join circles, and message classmates naturally." },
@@ -497,7 +497,7 @@ export const Landing = () => {
                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--rc-go)] mr-2 animate-pulse" /> Live
                     </span>
                   </div>
-                  <h3 className="text-3xl font-black text-white mb-3">GoUnion</h3>
+                  <h3 className="text-3xl font-black text-white mb-3">Reconnected</h3>
                   <p className="text-white/45 text-base leading-relaxed max-w-sm">The vibrant social heart of your university. Communities, live chats, stories, and events — the digital quad where everyone meets.</p>
                 </div>
               </motion.div>
@@ -584,9 +584,9 @@ export const Landing = () => {
             <h2 className="font-serif text-4xl md:text-6xl font-black tracking-tight mb-6">
               Ready to join?
             </h2>
-            <p className="text-white/40 text-lg mb-10 max-w-lg mx-auto">Your campus community is already here. Download GoUnion, choose your institution, and get verified in minutes.</p>
+            <p className="text-white/40 text-lg mb-10 max-w-lg mx-auto">Your campus community is already here. Download Reconnected, choose your institution, and get verified in minutes.</p>
             <Link to="/download" className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-white px-10 py-5 text-base font-black text-black shadow-[0_0_60px_rgba(255,255,255,0.1)] hover:shadow-[0_0_80px_rgba(255,255,255,0.2)] transition-all">
-              Download GoUnion
+              Download Reconnected
               <Download size={20} />
             </Link>
           </motion.div>

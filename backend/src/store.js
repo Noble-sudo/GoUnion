@@ -210,9 +210,24 @@ export const addNotification = async ({ user_id, sender_id, type, post_id = null
     const subscriptions = await PushSubscription.find({ user_id });
     if (subscriptions.length > 0) {
       let bodyText = message;
-      if (!bodyText) {
-        const actor = await User.findOne({ id: sender_id });
-        const actorName = actor ? (actor.profile?.full_name || actor.username) : 'Someone';
+      let titleText = 'Reconnected';
+      
+      const actor = await User.findOne({ id: sender_id });
+      const actorName = actor ? (actor.profile?.full_name || actor.username) : 'Someone';
+
+      if (type === 'new_message') {
+        const Conversation = (await import('./models.js')).Conversation;
+        const conv = await Conversation.findOne({ id: conversation_id });
+        if (conv?.group_id) {
+            const Group = (await import('./models.js')).Group;
+            const grp = await Group.findOne({ id: conv.group_id });
+            titleText = grp ? grp.name : 'Group Message';
+            bodyText = `${actorName}: ${message}`;
+        } else {
+            titleText = actorName;
+            bodyText = message;
+        }
+      } else if (!bodyText) {
         switch (type) {
           case 'like': bodyText = `${actorName} liked your post.`; break;
           case 'comment': bodyText = `${actorName} commented on your post.`; break;
@@ -220,12 +235,12 @@ export const addNotification = async ({ user_id, sender_id, type, post_id = null
           case 'follow': bodyText = `${actorName} started following you.`; break;
           case 'group_invite': bodyText = `${actorName} invited you to a group.`; break;
           case 'group_request': bodyText = `${actorName} requested to join your group.`; break;
-          case 'new_message': bodyText = `${actorName} sent you a new message.`; break;
           default: bodyText = `${actorName} interacted with you.`; break;
         }
       }
+
       const payload = JSON.stringify({
-        title: 'GoUnion Network',
+        title: titleText,
         body: bodyText,
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',

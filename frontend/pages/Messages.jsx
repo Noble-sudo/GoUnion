@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Users, Settings as SettingsIcon, Camera, Check, CheckCheck, Image as ImageIcon, FileText, MessageSquarePlus, MoreVertical, Paperclip, Plus, Search, Send, UserPlus, X, Mic, Smile, Trash2, Reply, Share, Share2, Keyboard, Maximize2, Download, ExternalLink , BellOff, Bell, LogOut, Ban, User, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { api, getApiErrorMessage } from "../services/api";
+import { api, getApiErrorMessage, transformMessage } from "../services/api";
 import { authStorage } from "../utils/persistentStorage";
 import { Avatar } from "../components/ui/Avatar";
 import { useToast } from "../components/ui/Toast";
@@ -26,6 +26,18 @@ const getUserColor = (userId) => {
         hash = String(userId).charCodeAt(i) + ((hash << 5) - hash);
     }
     return USER_COLORS[Math.abs(hash) % USER_COLORS.length];
+};
+
+const renderMessageWithMentions = (content) => {
+    if (!content) return null;
+    const parts = content.split(/(@[a-zA-Z0-9_.-]+)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('@')) {
+            const username = part.substring(1);
+            return <Link key={index} to={`/profile/${username}`} className="text-cyan-400 font-bold hover:underline relative z-50" onClick={(e) => e.stopPropagation()}>{part}</Link>;
+        }
+        return <span key={index}>{part}</span>;
+    });
 };
 
 export const Messages = ({ embeddedChatId }) => {
@@ -68,6 +80,7 @@ export const Messages = ({ embeddedChatId }) => {
     const [infoMessage, setInfoMessage] = useState(null);
     const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
     const [activeMessageMenu, setActiveMessageMenu] = useState(null);
+    const [reactionMsgId, setReactionMsgId] = useState(null);
     const [replyToMsg, setReplyToMsg] = useState(null);
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [highlightedMsgId, setHighlightedMsgId] = useState(() => {
@@ -179,8 +192,19 @@ export const Messages = ({ embeddedChatId }) => {
         socket.emit('joinConversation', selectedChatId);
         socket.on('typing', handleTypingEvent);
 
+        const handleMessageUpdated = (data) => {
+            if (data?.message) {
+                const transformed = transformMessage(data.message);
+                queryClient.setQueryData(["messages", selectedChatId], (old) =>
+                    old?.map(m => String(m.id) === String(transformed.id) ? transformed : m)
+                );
+            }
+        };
+        socket.on('message_updated', handleMessageUpdated);
+
         return () => {
             socket.off('typing', handleTypingEvent);
+            socket.off('message_updated', handleMessageUpdated);
             socket.emit('typing', { conversationId: selectedChatId, isTyping: false });
             setPartnerIsTyping(false);
         };
@@ -369,6 +393,17 @@ export const Messages = ({ embeddedChatId }) => {
         },
         onError: (err) => toast(getApiErrorMessage(err, "Failed to delete message"), "error")
     });
+
+    const reactToMessageMutation = useMutation({
+        mutationFn: ({ messageId, emoji }) => api.chats.reactToMessage(selectedChatId, messageId, emoji),
+        onSuccess: (updatedMsg) => {
+            queryClient.setQueryData(["messages", selectedChatId], (old) => 
+                old?.map(m => String(m.id) === String(updatedMsg.id) ? updatedMsg : m)
+            );
+        },
+        onError: (err) => toast(getApiErrorMessage(err, "Failed to react"), "error")
+    });
+
 
     const leaveGroupMutation = useMutation({
         mutationFn: (groupId) => api.groups.leave(groupId),
@@ -759,31 +794,42 @@ export const Messages = ({ embeddedChatId }) => {
                                                                 )}
                                                                 
                                                                 {/* Context Menu Icon */}
-                                                                <div className={`absolute top-2 ${mine ? "-left-10" : "-right-10"} opacity-40 group-hover:opacity-100 transition-opacity`}>
+                                                                <div className={`absolute top-2 ${mine ? "-left-10" : "-right-10"} opacity-40 group-hover:opacity-100 transition-opacity z-10`}>
                                                                     <button onClick={(e) => { e.stopPropagation(); setActiveMessageMenu(activeMessageMenu === msg.id ? null : msg.id); }} className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white shadow">
                                                                         <MoreVertical size={14} />
                                                                     </button>
-                                                                    {activeMessageMenu === msg.id && (
-                                                                            <div className="absolute top-8 z-50 bg-[#111114] border border-white/10 rounded-xl shadow-2xl p-1 w-40 flex flex-col">
-                                                                                <button onClick={() => { setReplyToMsg(msg); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
-                                                                                    <Reply size={14} /> Reply
-                                                                                </button>
-                                                                                <button onClick={() => { setMsgToForward(msg); setIsForwardModalOpen(true); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
-                                                                                    <Share size={14} /> Forward
-                                                                                  </button>
-{mine && (
-                                                                                    <button onClick={() => { setInfoMessage(msg); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
-                                                                                        <Info size={14} /> Message Info
-                                                                                    </button>
-                                                                                )}
-                                                                            {mine && (
-                                                                                <button onClick={() => { deleteMessageMutation.mutate(msg.id); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-500/10 rounded-lg w-full text-left">
-                                                                                    <Trash2 size={14} /> Delete
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
                                                                 </div>
+
+                                                                {activeMessageMenu === msg.id && (
+                                                                    <div className={`absolute top-10 ${mine ? "right-12" : "left-12"} z-[100] bg-[#111114] border border-white/10 rounded-xl shadow-2xl p-1 flex flex-col`} style={{ minWidth: '180px' }}>
+                                                                        <div className="flex items-center justify-between px-2 py-2 border-b border-white/10 mb-1 relative">
+                                                                            {['👍', '❤️', '😂', '😮', '😢', '🙏'].map(emoji => (
+                                                                                <button key={emoji} onClick={() => { reactToMessageMutation.mutate({ messageId: msg.id, emoji }); setActiveMessageMenu(null); }} className="text-lg hover:scale-125 transition-transform">
+                                                                                    {emoji}
+                                                                                </button>
+                                                                            ))}
+                                                                            <button onClick={(e) => { e.stopPropagation(); setReactionMsgId(msg.id); setActiveMessageMenu(null); }} className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+                                                                                <Plus size={14} />
+                                                                            </button>
+                                                                        </div>
+                                                                        <button onClick={() => { setReplyToMsg(msg); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
+                                                                            <Reply size={14} /> Reply
+                                                                        </button>
+                                                                        <button onClick={() => { setMsgToForward(msg); setIsForwardModalOpen(true); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
+                                                                            <Share size={14} /> Forward
+                                                                        </button>
+                                                                        {mine && (
+                                                                            <button onClick={() => { setInfoMessage(msg); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-white hover:bg-white/10 rounded-lg w-full text-left">
+                                                                                <Info size={14} /> Message Info
+                                                                            </button>
+                                                                        )}
+                                                                        {mine && (
+                                                                            <button onClick={() => { deleteMessageMutation.mutate(msg.id); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-500/10 rounded-lg w-full text-left">
+                                                                                <Trash2 size={14} /> Delete
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                )}
 
                                                                 <div 
                                                                     id={`msg-${msg.id}`}
@@ -791,12 +837,12 @@ export const Messages = ({ embeddedChatId }) => {
                                                                         e.preventDefault();
                                                                         setActiveMessageMenu(activeMessageMenu === msg.id ? null : msg.id);
                                                                     }}
-                                                                    className={`rounded-2xl px-3 py-2 shadow-md border cursor-pointer select-none transition-all duration-500 ${highlightedMsgId === msg.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-[#0a0a0c] scale-[1.02]' : ''} ${mine ? "bg-primary text-black border-primary/20 rounded-br-md active:scale-[0.99] hover:brightness-[0.98]" : (!msg.isRead ? "bg-[#151512] text-white border-primary/20 rounded-bl-md shadow-[0_0_15px_rgba(196,255,14,0.04)] active:scale-[0.99]" : "bg-[#111114] text-white border-white/10 rounded-bl-md active:scale-[0.99] hover:bg-[#151519]")}`}
+                                                                    className={`relative rounded-2xl px-3 py-2 shadow-md border cursor-pointer select-none transition-all duration-500 ${highlightedMsgId === msg.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-[#0a0a0c] scale-[1.02]' : ''} ${mine ? "bg-primary text-black border-primary/20 rounded-br-md active:scale-[0.99] hover:brightness-[0.98]" : (!msg.isRead ? "bg-[#151512] text-white border-primary/20 rounded-bl-md shadow-[0_0_15px_rgba(196,255,14,0.04)] active:scale-[0.99]" : "bg-[#111114] text-white border-white/10 rounded-bl-md active:scale-[0.99] hover:bg-[#151519]")}`}
                                                                 >
                                                                     {repliedMsg && (
         <div onClick={() => { document.getElementById(`msg-${repliedMsg.id}`)?.scrollIntoView({behavior: 'smooth', block: 'center'}); setHighlightedMsgId(repliedMsg.id); setTimeout(() => setHighlightedMsgId(null), 2000); }} className={`cursor-pointer hover:opacity-80 transition-opacity mb-2 p-2 rounded-xl border-l-2 text-xs ${mine ? "bg-black/10 border-black text-black/70" : "bg-black/30 border-primary text-white/70"}`}>
                                                                             <span className={`font-bold block mb-1 ${mine ? "text-black" : "text-primary"}`}>{String(repliedMsg.senderId) === String(currentUserId) ? "You" : (repliedMsg.sender?.fullName || "User")}</span>
-                                                                            {repliedMsg.isDeleted ? <em className={mine ? "text-black/50 italic" : "text-white/40 italic"}>This message was deleted</em> : repliedMsg.content || "Media"}
+                                                                            {repliedMsg.isDeleted ? <em className={mine ? "text-black/50 italic" : "text-white/40 italic"}>This message was deleted</em> : renderMessageWithMentions(repliedMsg.content) || "Media"}
                                                                         </div>
                                                                     )}
 
@@ -871,8 +917,25 @@ export const Messages = ({ embeddedChatId }) => {
                                                                                 />
                                                                             )}
                                                                             {msg.stickerUrl && <img src={msg.stickerUrl} className="h-24 w-24 object-contain" alt="Sticker" />}
-                                                                            {(msg.content || msg.caption) && <p className={`px-1 pt-1 text-[14px] leading-relaxed whitespace-pre-wrap ${mine ? "text-black" : "text-white"}`}>{msg.content || msg.caption}</p>}
+                                                                            {(msg.content || msg.caption) && <p className={`px-1 pt-1 text-[14px] leading-relaxed whitespace-pre-wrap ${mine ? "text-black" : "text-white"}`}>{renderMessageWithMentions(msg.content || msg.caption)}</p>}
                                                                         </>
+                                                                    )}
+                                                                    
+                                                                    {msg.reactions && msg.reactions.length > 0 && (
+                                                                        <button 
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                const userReaction = msg.reactions.find(r => String(r.user_id) === String(currentUserId) || String(r.userId) === String(currentUserId));
+                                                                                const targetEmoji = userReaction ? userReaction.emoji : msg.reactions[0].emoji;
+                                                                                reactToMessageMutation.mutate({ messageId: msg.id, emoji: targetEmoji });
+                                                                            }}
+                                                                            className={`absolute -bottom-3 ${mine ? "right-2" : "left-2"} bg-[#111114] hover:bg-[#1a1a1f] border ${msg.reactions.some(r => String(r.user_id) === String(currentUserId) || String(r.userId) === String(currentUserId)) ? 'border-primary' : 'border-white/10'} rounded-full px-1.5 py-0.5 flex items-center gap-1 shadow z-10 transition-colors`}
+                                                                        >
+                                                                            {Array.from(new Set(msg.reactions.map(r => r.emoji))).map(emoji => (
+                                                                                <span key={emoji} className="text-[11px]">{emoji}</span>
+                                                                            ))}
+                                                                            <span className="text-[9px] text-white/50 ml-0.5">{msg.reactions.length > 1 ? msg.reactions.length : ''}</span>
+                                                                        </button>
                                                                     )}
                                                                 </div>
                                                                 <div className={`flex items-center gap-2 px-2 mt-1 text-[10px] ${mine ? "text-primary/70" : "text-white/40"}`}>
@@ -1237,6 +1300,18 @@ export const Messages = ({ embeddedChatId }) => {
                                     </div>
                                 )}
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Full Screen Emoji Reaction Picker */}
+            <AnimatePresence>
+                {reactionMsgId && (
+                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setReactionMsgId(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} className="relative z-10 shadow-2xl">
+                            <EmojiPicker theme={Theme.DARK} onEmojiClick={(emojiData) => { reactToMessageMutation.mutate({ messageId: reactionMsgId, emoji: emojiData.emoji }); setReactionMsgId(null); }} />
                         </motion.div>
                     </div>
                 )}

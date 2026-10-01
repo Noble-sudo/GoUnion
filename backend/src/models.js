@@ -244,6 +244,15 @@ const messageSchema = new Schema(
     is_deleted: { type: Boolean, default: false },
     is_forwarded: { type: Boolean, default: false },
     reply_to_id: { type: String, default: null },
+    reactions: {
+      type: [
+        {
+          user_id: { type: String, required: true },
+          emoji: { type: String, required: true }
+        }
+      ],
+      default: []
+    },
     seen_by: { type: [{ user_id: { type: String, required: true }, seen_at: { type: Date, default: Date.now } }], default: [] },
   },
   baseOptions,

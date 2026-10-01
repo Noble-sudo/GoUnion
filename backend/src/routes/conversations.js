@@ -129,13 +129,14 @@ conversationsRouter.post(
           message: group ? `${group.name}: ${senderName} mentioned you.` : 'mentioned you in a chat.',
         });
     }
+    const messageContentPreview = req.body.content || (image ? 'Photo' : 'Attachment');
     await Promise.all(conversation.participant_ids.filter((id) => id !== req.user.id).map((id) => addNotification({
       user_id: id,
       sender_id: req.user.id,
       type: 'new_message',
       conversation_id: conversation.id,
       group_id: groupId,
-      message: group ? `${group.name}: ${senderName} sent a message.` : null,
+      message: messageContentPreview,
     })));
       // Emit socket event to participants
       try {
@@ -205,7 +206,52 @@ conversationsRouter.post(
     res.json({ status: 'success' });
   }),
 );
+conversationsRouter.post(
+  '/:id/messages/:messageId/react',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { emoji } = req.body;
+    if (!emoji) throw new HttpError(400, 'Emoji is required');
 
+    const conversation = await Conversation.findOne({ id: req.params.id });
+    if (!conversation) throw notFound('Conversation not found.');
+    if (!hasParticipant(conversation, req.user.id)) throw forbidden('You cannot react in this conversation.');
+
+    const message = await Message.findOne({ id: req.params.messageId, conversation_id: conversation.id });
+    if (!message) throw notFound('Message not found.');
+
+    const existingReaction = message.reactions.find(r => r.user_id === req.user.id);
+    if (existingReaction) {
+        if (existingReaction.emoji === emoji) {
+            // Remove if same
+            await Message.updateOne({ id: message.id }, { $pull: { reactions: { user_id: req.user.id } } });
+        } else {
+            // Update
+            await Message.updateOne(
+                { id: message.id, "reactions.user_id": req.user.id },
+                { $set: { "reactions.$.emoji": emoji } }
+            );
+        }
+    } else {
+        // Add
+        await Message.updateOne({ id: message.id }, { $push: { reactions: { user_id: req.user.id, emoji } } });
+    }
+
+    const updatedMsg = await Message.findOne({ id: req.params.messageId });
+    const serialized = await serializeMessage(updatedMsg);
+
+    try {
+        const io = getIo();
+        if (io) {
+            io.to(`conversation:${conversation.id}`).emit('message_updated', { type: 'message_updated', message: serialized });
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    res.json(serialized);
+  })
+);
 
 
 conversationsRouter.post(

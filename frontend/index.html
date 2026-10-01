@@ -40,8 +40,34 @@
       }
     </script>
 </head>
-  <body>
+  <body style="background-color: #030303; margin: 0; padding: 0;">
     <div id="root"></div>
+    <div id="initial-splash" style="position: fixed; inset: 0; background-color: #030303; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; transition: opacity 0.5s ease-out;">
+      <div style="width: 80px; height: 80px; background-color: #ffffff; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">
+        <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 900; font-size: 56px; color: #030303; line-height: 1;">R</span>
+      </div>
+      <style>
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: .7; transform: scale(0.95); }
+        }
+      </style>
+    </div>
+    <script>
+      // Remove splash screen when React mounts
+      const observer = new MutationObserver((mutations) => {
+        const root = document.getElementById('root');
+        if (root.children.length > 0) {
+          const splash = document.getElementById('initial-splash');
+          if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+          }
+          observer.disconnect();
+        }
+      });
+      observer.observe(document.getElementById('root'), { childList: true });
+    </script>
     <script type="module" src="/index.jsx"></script>
   </body>
 </html>

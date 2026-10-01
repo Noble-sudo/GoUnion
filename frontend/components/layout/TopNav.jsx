@@ -68,5 +68,5 @@ export const TopNav = () => {
                                             else {
                                                 navigate("/");
                                             }
-                                        } })) })] }), _jsx("div", { className: "w-px h-8 bg-white/10 hidden md:block mx-1" }), _jsx(Link, { to: `/profile/${user?.username}`, className: "ml-1 md:ml-0", children: _jsx("div", { className: "p-1 rounded-full border-2 border-transparent hover:border-primary/50 transition-colors", children: _jsx("div", { className: "w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/10 overflow-hidden bg-white/5", children: _jsx(Avatar, { src: user?.avatarUrl, label: "G", alt: "Profile", className: "w-full h-full object-cover" }) }) }) })] })] }) }));
+                                        } })) })] }), _jsx("div", { className: "w-px h-8 bg-white/10 hidden md:block mx-1" }), _jsx(Link, { to: `/profile/${user?.username}`, className: "ml-1 md:ml-0", children: _jsx("div", { className: "p-1 rounded-full border-2 border-transparent hover:border-primary/50 transition-colors", children: _jsx("div", { className: "w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/10 overflow-hidden bg-white/5", children: _jsx(Avatar, { src: user?.avatarUrl, label: "R", alt: "Profile", className: "w-full h-full object-cover" }) }) }) })] })] }) }));
 };

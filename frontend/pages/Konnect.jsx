@@ -37,7 +37,7 @@ export const Konnect = () => {
   // Search Users
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['konnect-search', debouncedQuery],
-    queryFn: () => api.search.globalUsers(debouncedQuery),
+    queryFn: () => api.search.konnect(debouncedQuery),
     enabled: debouncedQuery.length > 2,
   });
 
@@ -210,54 +210,103 @@ export const Konnect = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-4"
               >
-                <h3 className="rc-label text-white/50 mb-4 px-1">Global Users</h3>
                 {isSearching ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
                   </div>
-                ) : searchResults?.length > 0 ? (
-                  <div className="grid gap-3">
-                    {searchResults.map((user, i) => (
-                      <motion.div
-                        key={user.id || user._id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                      >
-                        <Link
-                          to={`/profile/${user.username}`}
-                          className="flex items-center gap-4 p-4 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group"
-                        >
-                          <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
-                            {user.avatar ? (
-                              <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-lg font-bold text-white/50 bg-gradient-to-br from-cyan-900/50 to-blue-900/50">
-                                {user.name?.charAt(0)}
+                ) : (searchResults?.users?.length > 0 || searchResults?.groups?.length > 0 || searchResults?.institutions?.length > 0) ? (
+                  <div className="space-y-8">
+                    {/* Institutions (Campuses) */}
+                    {searchResults.institutions?.length > 0 && (
+                      <div>
+                        <h3 className="rc-label text-white/50 mb-3 px-1">Campuses</h3>
+                        <div className="grid gap-3">
+                          {searchResults.institutions.map((inst, i) => (
+                            <motion.div key={inst.id || inst._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                              <div className="flex items-center gap-4 p-4 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
+                                <div className="w-12 h-12 rounded-2xl bg-cyan-900/30 flex items-center justify-center flex-shrink-0 border border-cyan-500/20">
+                                  <Building2 className="w-6 h-6 text-cyan-400" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-bold text-white truncate group-hover:text-cyan-400 transition-colors">{inst.name}</h4>
+                                  <p className="text-sm text-white/50">{inst.alias}</p>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-cyan-400 transition-colors" />
                               </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-white truncate group-hover:text-cyan-400 transition-colors">{user.name}</h4>
-                            <p className="text-sm text-white/50 truncate">@{user.username}</p>
-                          </div>
-                          {user.institutionName && (
-                            <div className="hidden sm:block text-xs font-medium text-cyan-400/70 bg-cyan-400/10 px-3 py-1 rounded-full whitespace-nowrap">
-                              {user.institutionName}
-                            </div>
-                          )}
-                          <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-cyan-400 transition-colors" />
-                        </Link>
-                      </motion.div>
-                    ))}
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Communities (Groups) */}
+                    {searchResults.groups?.length > 0 && (
+                      <div>
+                        <h3 className="rc-label text-white/50 mb-3 px-1">Communities</h3>
+                        <div className="grid gap-3">
+                          {searchResults.groups.map((group, i) => (
+                            <motion.div key={group.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                              <Link to={`/groups/${group.id}`} className="flex items-center gap-4 p-4 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
+                                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-white/10">
+                                  <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-bold text-white truncate group-hover:text-cyan-400 transition-colors">{group.name}</h4>
+                                  <p className="text-sm text-white/50 truncate">{group.description}</p>
+                                </div>
+                                <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-white/40 bg-white/5 px-3 py-1 rounded-full">
+                                  <Users className="w-3.5 h-3.5" />
+                                  <span>{group.memberCount}</span>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-cyan-400 transition-colors" />
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Global Users */}
+                    {searchResults.users?.length > 0 && (
+                      <div>
+                        <h3 className="rc-label text-white/50 mb-3 px-1">Global Users</h3>
+                        <div className="grid gap-3">
+                          {searchResults.users.map((user, i) => (
+                            <motion.div key={user.id || user._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                              <Link to={`/profile/${user.username}`} className="flex items-center gap-4 p-4 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
+                                <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+                                  {user.avatarUrl || user.avatar ? (
+                                    <img src={user.avatarUrl || user.avatar} alt={user.fullName || user.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-lg font-bold text-white/50 bg-gradient-to-br from-cyan-900/50 to-blue-900/50">
+                                      {(user.fullName || user.name || 'U').charAt(0)}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-bold text-white truncate group-hover:text-cyan-400 transition-colors">{user.fullName || user.name}</h4>
+                                  <p className="text-sm text-white/50 truncate">@{user.username}</p>
+                                </div>
+                                {user.institutionName && (
+                                  <div className="hidden sm:block text-xs font-medium text-cyan-400/70 bg-cyan-400/10 px-3 py-1 rounded-full whitespace-nowrap">
+                                    {user.institutionName}
+                                  </div>
+                                )}
+                                <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-cyan-400 transition-colors" />
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-16 px-4">
                     <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/10">
                       <Search className="w-8 h-8 text-white/20" />
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">No users found</h3>
-                    <p className="text-white/50">Try searching with a different name or username.</p>
+                    <h3 className="text-lg font-bold text-white mb-2">No results found</h3>
+                    <p className="text-white/50">Try searching for something else.</p>
                   </div>
                 )}
               </motion.div>
