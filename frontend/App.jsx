@@ -81,7 +81,7 @@ const AppRoutes = () => {
     useEffect(() => {
       if (isAuthenticated) {
         import('./services/api').then(({ api }) => {
-          api.users.me().then(me => {
+          api.auth.me().then(me => {
              if (me && me.id) updateUser(me);
           }).catch(console.error);
         });
