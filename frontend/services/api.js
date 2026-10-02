@@ -577,6 +577,19 @@ export const api = {
             const posts = res.data.map(transformPost).filter((post) => !post.groupId);
             return seededShuffle(posts, seed);
         },
+	        getGlobalFeed: async ({ pageParam = 0, seed } = {}) => {
+            const query = new URLSearchParams({
+                skip: String(pageParam * 10),
+                limit: '10',
+                scope: 'global',
+            });
+            if (typeof seed === 'number') {
+                query.set('seed', seed.toFixed(8));
+            }
+            const res = await apiClient.get(`/posts/feed?${query.toString()}`);
+            const posts = res.data.map(transformPost).filter((post) => !post.groupId);
+            return seededShuffle(posts, seed);
+        },
         getReels: async ({ pageParam = 0, seed } = {}) => {
             const query = new URLSearchParams({
                 skip: String(pageParam * 10),
