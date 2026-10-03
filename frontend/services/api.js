@@ -487,6 +487,13 @@ export const api = {
             } catch {
                 return [];
             }
+        },
+        getActive: async () => {
+        try {
+            const res = await apiClient.get("/institutions/active");
+            return res.data || [];
+        } catch {
+            return [];
         }
     },
     health: {
@@ -799,6 +806,25 @@ export const api = {
         },
         getAll: async () => {
             const res = await apiClient.get('/groups/');
+            return res.data.map((g) => ({
+                id: g?.id?.toString(),
+                name: g.name,
+                description: g.description,
+                memberCount: g.member_count || 0,
+                imageUrl: getFullUrl(g.cover_image) || `https://api.dicebear.com/7.x/identicon/svg?seed=${g.name}`,
+                isJoined: g.is_joined ?? g.isJoined ?? false,
+                privacy: g.privacy,
+                creatorId: g.creator_id || g.creatorId,
+                creator_id: g.creator_id || g.creatorId,
+                institutionId: g.institution_id || g.institutionId || null,
+                institutionName: g.institution_name || g.institutionName || g.university || null,
+                university: g.institution_name || g.institutionName || g.university || null,
+                has_requested: g.has_requested,
+                category: g.category || 'Other',
+            }));
+        },
+	        getGlobal: async () => {
+            const res = await apiClient.get('/groups/?scope=global');
             return res.data.map((g) => ({
                 id: g?.id?.toString(),
                 name: g.name,

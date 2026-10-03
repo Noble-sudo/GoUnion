@@ -56,6 +56,15 @@ export const CommentSection = ({ postId, groupId, authorUsername, }) => {
                     pages: old.pages.map((page) => page.map(updatePostCount)),
                 };
             });
+	    // Update Konnect Global Feed
+            queryClient.setQueryData(["konnect-feed"], (old) => {
+                if (!old)
+                    return old;
+                return {
+                    ...old,
+                    pages: old.pages.map((page) => page.map(updatePostCount)),
+                };
+            });
             // Update Group Posts
             if (groupId) {
                 queryClient.setQueryData(["group-posts", groupId], (old) => {

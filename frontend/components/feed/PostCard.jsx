@@ -58,6 +58,14 @@ export const PostCard = ({ post, defaultShowComments = false }) => {
                 pages: old.pages.map((page) => page.map(updater)),
             };
         });
+	        queryClient.setQueriesData({ queryKey: ["konnect-feed"] }, (old) => {
+            if (!old?.pages)
+                return old;
+            return {
+                ...old,
+                pages: old.pages.map((page) => page.map(updater)),
+            };
+        });
         queryClient.setQueryData(["profile-posts", post.author.username], (old) => Array.isArray(old) ? old.map(updater) : old);
         if (post.groupId) {
             queryClient.setQueryData(["group-posts", post.groupId], (old) => Array.isArray(old) ? old.map(updater) : old);
@@ -87,6 +95,7 @@ export const PostCard = ({ post, defaultShowComments = false }) => {
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["feed"] });
             queryClient.invalidateQueries({ queryKey: ["goto-reels"] });
+	    queryClient.invalidateQueries({ queryKey: ["konnect-feed"] });
             queryClient.invalidateQueries({ queryKey: ["post", post.id] });
             queryClient.invalidateQueries({ queryKey: ["profile-posts", post.author.username] });
             if (post.groupId) {
