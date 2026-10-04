@@ -496,6 +496,7 @@ export const api = {
             return [];
         }
     },
+    },
     health: {
         check: async () => {
             const res = await apiClient.get('/health');
