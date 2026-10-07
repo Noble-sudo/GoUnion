@@ -28,8 +28,8 @@ export default defineConfig(({ mode }) => {
                 injectRegister: 'auto',
                 includeAssets: ['pwa-192x192.png', 'pwa-512x512.png', 'favicon.png'],
                 manifest: {
-                    name: 'Reconnected',
-                    short_name: 'Reconnected',
+                    name: 'Konnect',
+                    short_name: 'Konnect',
                     description: 'The elite campus collective',
                     theme_color: '#030303',
                     background_color: '#030303',

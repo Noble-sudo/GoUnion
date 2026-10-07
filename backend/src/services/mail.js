@@ -54,17 +54,17 @@ export const sendMail = async ({ to, subject, text, html }) => {
 export const sendWelcomeEmail = (user, verifyUrl) =>
   sendMail({
     to: user.email,
-    subject: 'Confirm your GoUnion email',
-    text: `Welcome to GoUnion. Confirm your email here: ${verifyUrl}`,
-    html: `<p>Welcome to GoUnion.</p><p><a href="${verifyUrl}">Confirm your email</a></p>`,
+    subject: 'Confirm your Konnect email',
+    text: `Welcome to Konnect. Confirm your email here: ${verifyUrl}`,
+    html: `<p>Welcome to Konnect.</p><p><a href="${verifyUrl}">Confirm your email</a></p>`,
   });
 
 export const sendPasswordResetEmail = async (user, resetUrl) => {
   const result = await sendMail({
     to: user.email,
-    subject: 'Reset your GoUnion password',
-    text: `Reset your GoUnion password here: ${resetUrl}\nThis link expires in 60 minutes.`,
-    html: `<p>Reset your GoUnion password:</p><p><a href="${resetUrl}">Reset password</a></p><p>This link expires in 60 minutes.</p>`,
+    subject: 'Reset your Konnect password',
+    text: `Reset your Konnect password here: ${resetUrl}\nThis link expires in 60 minutes.`,
+    html: `<p>Reset your Konnect password:</p><p><a href="${resetUrl}">Reset password</a></p><p>This link expires in 60 minutes.</p>`,
   });
   return result.dev ? { ...result, devResetUrl: resetUrl } : result;
 };
@@ -72,11 +72,11 @@ export const sendPasswordResetEmail = async (user, resetUrl) => {
 export const sendOtpEmail = async (user, otp) => {
   const result = await sendMail({
     to: user.email,
-    subject: 'Your GoUnion verification code',
-    text: `Your GoUnion verification code is: ${otp}\nIt expires in 15 minutes. Do not share this code with anyone.`,
+    subject: 'Your Konnect verification code',
+    text: `Your Konnect verification code is: ${otp}\nIt expires in 15 minutes. Do not share this code with anyone.`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#0a0a0c;border-radius:16px;color:#fff;">
-        <h2 style="margin:0 0 8px;font-size:24px;">Verify your GoUnion account</h2>
+        <h2 style="margin:0 0 8px;font-size:24px;">Verify your Konnect account</h2>
         <p style="color:#888;margin:0 0 32px;font-size:14px;">Enter this code in the app to confirm your email address.</p>
         <div style="letter-spacing:12px;font-size:40px;font-weight:900;text-align:center;padding:24px;background:#151518;border-radius:12px;border:1px solid #222;">${otp}</div>
         <p style="color:#555;font-size:12px;margin:24px 0 0;text-align:center;">Expires in 15 minutes &bull; Do not share this code</p>
