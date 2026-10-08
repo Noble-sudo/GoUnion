@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import multer from 'multer';
 import { Router } from 'express';
-import { EmailVerificationToken, OtpToken, PendingSignup, PasswordResetToken, RefreshToken, User } from '../models.js';
+import { EmailVerificationToken, OtpToken, PendingSignup, PasswordResetToken, RefreshToken, StudentIdentity, User } from '../models.js';
 import { env } from '../config/env.js';
 import { publicUser } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -178,6 +178,20 @@ authRouter.post(
       profile: { full_name: pending.full_name, university: 'University Student' },
     });
     user.profile.user_id = user.id;
+
+
+    // Launch scope: every new account is linked to Godfrey Okoye University automatically.
+    // LEGACY_UNVERIFIED grants campus access without showing the verified badge.
+    const identity = await StudentIdentity.create({
+      user_id: user.id,
+      institution_id: 'ng-godfrey-okoye-university-enugu',
+      method: 'legacy',
+      status: 'LEGACY_UNVERIFIED',
+    });
+    user.active_identity_id = identity.id;
+    user.institution_id = identity.institution_id;
+
+
     await user.save();
     await PendingSignup.deleteOne({ _id: pending._id });
 
