@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, Compass, Home, LogOut, MessageSquare, Search, Settings, ShieldCheck, ShoppingBag, User, UserPlus, Users } from "lucide-react";
+import { Bell, Compass, Home, LogOut, MessageSquare, MessageSquareText, Search, Settings, ShieldCheck, ShoppingBag, User, UserPlus, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { api } from "../../services/api";
@@ -10,8 +10,8 @@ import { InviteModal } from "../ui/InviteModal";
 import { isAdminEmail } from "../../config/admins";
 
 const mainNav = [
-  { icon: Home, label: "GoUnion", sub: "My Campus", path: "/" },
-  { icon: Compass, label: "Konnect", sub: "Beyond Campus", path: "/konnect" },
+  { icon: Home, label: "Pulse", sub: "Photos & videos", path: "/" },
+  { icon: MessageSquareText, label: "Takes", sub: "Thoughts & writeups", path: "/takes" },
   { icon: MessageSquare, label: "Messages", path: "/messages", badge: "messages" },
   { icon: Bell, label: "Signals", path: "/notifications", badge: "notifications" },
 ];
@@ -60,8 +60,8 @@ export const Sidebar = () => {
         {mainNav.map((item) => {
           const count = badgeValue(item.badge);
           return (
-            <NavLink key={item.path} to={item.path} onClick={() => handleNavClick(item.path)} className={({ isActive }) => `flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-semibold transition ${isActive ? (item.label === 'GoUnion' ? 'border-[rgba(199,249,79,0.28)] bg-[var(--rc-go-soft)] text-white' : 'border-white/10 bg-white/10 text-white') : "border-transparent text-white/58 hover:bg-white/[0.045] hover:text-white"}`}>
-              <item.icon className={`h-5 w-5 ${location.pathname === item.path && item.label === 'GoUnion' ? 'text-[var(--rc-go)]' : ''}`} />
+            <NavLink key={item.path} to={item.path} onClick={() => handleNavClick(item.path)} className={({ isActive }) => `flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-semibold transition ${isActive ? (item.label === 'Pulse' ? 'border-[rgba(34,211,238,0.28)] bg-[var(--rc-go-soft)] text-white' : 'border-white/10 bg-white/10 text-white') : "border-transparent text-white/58 hover:bg-white/[0.045] hover:text-white"}`}>
+              <item.icon className={`h-5 w-5 ${location.pathname === item.path && item.label === 'Pulse' ? 'text-[var(--rc-go)]' : ''}`} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="font-bold">{item.label}</span>

@@ -154,7 +154,7 @@ export const Profile = () => {
                 <div className="flex items-center gap-2">
     <h1 className="font-serif text-3xl font-bold text-white">{user.fullName}</h1>
     {user.verification_status === 'VERIFIED' && (
-      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 border border-primary/40 text-primary shadow-[0_0_15px_rgba(196,255,14,0.25)]" title="Verified Student">
+      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 border border-primary/40 text-primary shadow-[0_0_15px_rgba(34,211,238,0.25)]" title="Verified Student">
         <Check size={14} strokeWidth={3} />
       </span>
     )}

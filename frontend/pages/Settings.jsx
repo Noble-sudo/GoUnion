@@ -266,7 +266,7 @@ export const Settings = () => {
                 enabled={getToggle('show_online_status', true)}
                 onChange={(v) => setToggle('show_online_status', v)}
                 label="Show Online Status"
-                description="Let others see when you're active on Reconnected."
+                description="Let others see when you're active on Konnect."
               />
               <Toggle
                 enabled={getToggle('show_last_seen', true)}

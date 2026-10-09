@@ -137,7 +137,7 @@ export const Login = () => {
               <p className="mt-6 max-w-md text-sm leading-7 text-white/52">Create one Reconnected identity, then step into GoUnion for community today and Teaky when the marketplace opens.</p>
             </div>
             <div className="grid gap-3">
-              <div className="rounded-2xl border border-[rgba(199,249,79,0.2)] bg-[var(--rc-go-soft)] p-4">
+              <div className="rounded-2xl border border-[rgba(34,211,238,0.2)] bg-[var(--rc-go-soft)] p-4">
                 <p className="text-xs font-black uppercase tracking-widest text-[var(--rc-go)]">GoUnion</p>
                 <p className="mt-1 text-sm text-white/70">Campus community, Pulse, Circles, Messages.</p>
               </div>

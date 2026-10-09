@@ -41,10 +41,10 @@ export const publicUser = async (userOrId, viewerId = null) => {
       role: 'admin',
       is_online: true,
       profile: {
-        full_name: 'Reconnected Broadcast',
+        full_name: 'Konnect Broadcast',
         avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=R&backgroundColor=ffffff&textColor=000000',
-        bio: 'Official Reconnected Communications',
-        university: 'Reconnected Platform',
+        bio: 'Official Konnect Communications',
+        university: 'Konnect Platform',
       },
       followers: 0,
       following: 0,
@@ -210,7 +210,7 @@ export const addNotification = async ({ user_id, sender_id, type, post_id = null
     const subscriptions = await PushSubscription.find({ user_id });
     if (subscriptions.length > 0) {
       let bodyText = message;
-      let titleText = 'Reconnected';
+      let titleText = 'Konnect';
       
       const actor = await User.findOne({ id: sender_id });
       const actorName = actor ? (actor.profile?.full_name || actor.username) : 'Someone';

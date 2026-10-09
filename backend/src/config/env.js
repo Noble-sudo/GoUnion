@@ -24,7 +24,7 @@ export const env = {
   refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '3650d',
   cloudinaryFolder: process.env.CLOUDINARY_FOLDER || 'gounion',
   appUrl: (process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, ''),
-  mailFrom: process.env.MAIL_FROM || 'GoUnion <no-reply@gounion.app>',
+  mailFrom: process.env.MAIL_FROM || 'Konnect <no-reply@gounion.app>',
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),

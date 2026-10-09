@@ -56,7 +56,7 @@ const renderWatermarkedVideo = async (url, watermark) => {
 };
 
 export const saveVideoFile = async (url, filename = 'gounion-video') => {
-    const blob = await renderWatermarkedVideo(url, 'GoUnion');
+    const blob = await renderWatermarkedVideo(url, 'Konnect');
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = objectUrl;
@@ -68,7 +68,7 @@ export const saveVideoFile = async (url, filename = 'gounion-video') => {
 };
 
 export const shareVideoFile = async (url, filename, title, text) => {
-    const blob = await renderWatermarkedVideo(url, 'GoUnion');
+    const blob = await renderWatermarkedVideo(url, 'Konnect');
     const file = new File([blob], `${filename}.${extensionFromType(blob.type)}`, { type: blob.type });
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ title, text, files: [file] });

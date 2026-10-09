@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Users, MessageSquare, User, Compass, ShoppingBag, ShieldCheck, Settings, LogOut, X, Bell, UserPlus } from "lucide-react";
+import { Home, Users, MessageSquare, User, Compass, MessageSquareText, ShoppingBag, ShieldCheck, Settings, LogOut, X, Bell, UserPlus } from "lucide-react";
 import { useAuthStore } from "../../store";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
@@ -33,7 +33,7 @@ export const MobileNav = () => {
 
     const NAV_LEFT = [
         { icon: Home, label: "Pulse", path: "/" },
-        { icon: Compass, label: "Konnect", path: "/konnect" },
+        { icon: MessageSquareText, label: "Takes", path: "/takes" },
     ];
 
     const NAV_RIGHT = [
@@ -52,9 +52,8 @@ export const MobileNav = () => {
         { icon: Settings, label: "Settings", path: "/settings" },
     ];
 
-    const isKonnect = location.pathname === "/konnect" || location.pathname.startsWith("/institutions/");
-    const activeTextClass = isKonnect ? "text-cyan-400" : "text-primary";
-    const activeBgLightClass = isKonnect ? "bg-cyan-400/10" : "bg-primary/10";
+    const activeTextClass = "text-primary";
+    const activeBgLightClass = "bg-primary/10";
 
     const renderNavItem = (item) => (
         <NavLink key={item.path} to={item.path} onClick={() => {
@@ -86,7 +85,7 @@ export const MobileNav = () => {
                 </div>
 
                 <div className="relative -top-5 px-2">
-                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`relative flex items-center justify-center w-14 h-14 rounded-full ${isKonnect ? 'bg-cyan-400 shadow-[0_4px_20px_rgba(34,211,238,0.4)]' : 'bg-primary shadow-[0_4px_20px_rgba(196,255,14,0.4)]'} text-black font-serif font-black text-2xl transition-transform hover:scale-105 active:scale-95 z-[165]`}>
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`relative flex items-center justify-center w-14 h-14 rounded-full bg-primary shadow-[0_4px_20px_rgba(34,211,238,0.4)] text-black font-serif font-black text-2xl transition-transform hover:scale-105 active:scale-95 z-[165]`}>
                         R
                         {unreadCount > 0 && (
                             <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-[#050505]" />

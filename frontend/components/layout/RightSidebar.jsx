@@ -116,7 +116,7 @@ export const RightSidebar = () => {
           <a href="#" className="hover:text-white transition-colors">About</a>
           <a href="#" className="hover:text-white transition-colors">Privacy</a>
           <a href="#" className="hover:text-white transition-colors">Terms</a>
-          <span>&copy; 2026 Reconnected</span>
+          <span>&copy; 2026 Konnect</span>
         </div>
       </div>
     </motion.aside>

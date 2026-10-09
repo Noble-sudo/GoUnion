@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React from "react";
-export const GoUnionLoader = ({ fullscreen = true, message = "Loading GoUnion...", }) => {
+export const GoUnionLoader = ({ fullscreen = true, message = "Loading Konnect...", }) => {
     const wrapperClasses = fullscreen
         ? "fixed inset-0 z-[120] bg-[#030303]/95 backdrop-blur-sm flex items-center justify-center px-6"
         : "w-full flex items-center justify-center px-6 py-10";

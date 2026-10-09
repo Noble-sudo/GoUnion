@@ -4,7 +4,7 @@ import { Home, Compass, MessageSquare, Download, X, Smartphone, Bell, ChevronRig
 
 const TOUR_STEPS = [
   {
-    title: "Welcome to Reconnected.",
+    title: "Welcome to Konnect.",
     description: "Your digital campus is ready. Let's take a quick look around.",
     icon: Zap,
     color: "text-yellow-400",
@@ -33,7 +33,7 @@ const TOUR_STEPS = [
   },
   {
     title: "Install the App",
-    description: "Get the full experience. Install Reconnected to your home screen for push notifications and instant access.",
+    description: "Get the full experience. Install Konnect to your home screen for push notifications and instant access.",
     icon: Download,
     color: "text-emerald-400",
     bg: "bg-emerald-400/10",
@@ -143,7 +143,7 @@ export const WelcomeTour = () => {
                 <div className="flex flex-col gap-3 w-full">
                   <button 
                     onClick={handleInstallClick}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--rc-go)] py-4 text-sm font-black text-black shadow-[0_0_20px_rgba(199,249,79,0.3)] hover:scale-[1.02] transition-transform"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--rc-go)] py-4 text-sm font-black text-black shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:scale-[1.02] transition-transform"
                   >
                     <Download size={18} />
                     Install App

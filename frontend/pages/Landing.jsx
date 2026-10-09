@@ -212,7 +212,7 @@ const AppFirstSection = ({ itemVariants, onInstall, isInstalled, showIosHint, on
       )}
     </AnimatePresence>
 
-    <div className="max-w-6xl mx-auto rounded-[2.5rem] border border-[var(--rc-go)]/15 bg-gradient-to-br from-[#0c100a] to-[#040506] p-8 shadow-[0_24px_70px_rgba(199,249,79,0.06)] md:p-12 lg:p-16 relative overflow-hidden">
+    <div className="max-w-6xl mx-auto rounded-[2.5rem] border border-[var(--rc-go)]/15 bg-gradient-to-br from-[#0c100a] to-[#040506] p-8 shadow-[0_24px_70px_rgba(34,211,238,0.06)] md:p-12 lg:p-16 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[var(--rc-go)]/10 blur-[140px] -translate-y-1/2 translate-x-1/3 rounded-full pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-white/5 blur-[100px] translate-y-1/3 -translate-x-1/3 rounded-full pointer-events-none" />
 

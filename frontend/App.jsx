@@ -10,6 +10,7 @@ import { PwaInstallBanner } from "./components/layout/PwaInstallBanner";
 import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
 import { Konnect } from "./pages/Konnect";
+import { Takes } from "./pages/Takes";
 import { Teaky } from "./pages/Teaky";
 import { InstitutionFeed } from "./pages/InstitutionFeed";
 import { Login } from "./pages/Login";
@@ -110,6 +111,7 @@ const AppRoutes = () => {
         <Route path="/post/:id" element={<PrivateRoute><PostDetail /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute noLayout><AdminPanel /></PrivateRoute>} />
         <Route path="/konnect" element={<PrivateRoute><Konnect /></PrivateRoute>} />
+        <Route path="/takes" element={<PrivateRoute><Takes /></PrivateRoute>} />
         <Route path="/institutions/:id" element={<PrivateRoute><InstitutionFeed /></PrivateRoute>} />
         <Route path="/teaky" element={<PrivateRoute><Teaky /></PrivateRoute>} />
         <Route path="/sound/:soundName" element={<PrivateRoute><SoundFeed /></PrivateRoute>} />

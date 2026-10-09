@@ -340,9 +340,9 @@ export const Messages = ({ embeddedChatId }) => {
                 setContactEmails(new Set(contacts.flatMap((contact) => contact.email || []).map(normalizeContactToken).filter(Boolean)));
                 setContactNames(new Set(contacts.flatMap((contact) => contact.name || []).map(normalizeContactToken).filter(Boolean)));
             } else if (navigator.share) {
-                await navigator.share({ title: "Join GoUnion", text: "Hey! I'd love for you to join me on GoUnion. It's a great space to connect. Download the app here:", url: "https://gounion.me/download" });
+                await navigator.share({ title: "Join Konnect", text: "Hey! I'd love for you to join me on Konnect. It's a great space to connect. Download the app here:", url: `${window.location.origin.startsWith('http') ? window.location.origin : 'https://reconencted.com'}/download` });
             } else if (navigator.clipboard) {
-                await navigator.clipboard.writeText(`Hey! I'd love for you to join me on GoUnion. It's a great space to connect. Download the app here:\nhttps://gounion.me/download`);
+                await navigator.clipboard.writeText(`Hey! I'd love for you to join me on Konnect. It's a great space to connect. Download the app here:\n${window.location.origin.startsWith('http') ? window.location.origin : 'https://reconencted.com'}/download`);
                 toast("Invite link copied to clipboard.", "success");
             }
         } catch (err) {
@@ -353,9 +353,9 @@ export const Messages = ({ embeddedChatId }) => {
     const shareAppLink = async () => {
         try {
             if (navigator.share) {
-                await navigator.share({ title: "Join GoUnion", url: "https://gounion.me/download" });
+                await navigator.share({ title: "Join Konnect", url: `${window.location.origin.startsWith('http') ? window.location.origin : 'https://reconencted.com'}/download` });
             } else {
-                await navigator.clipboard.writeText("https://gounion.me/download");
+                await navigator.clipboard.writeText(`${window.location.origin.startsWith('http') ? window.location.origin : 'https://reconencted.com'}/download`);
             }
             toast("App link shared successfully!", "success");
         } catch (e) {
@@ -595,7 +595,7 @@ export const Messages = ({ embeddedChatId }) => {
                         <Link to="/" className="flex items-center gap-3 min-w-0">
                             <div className="h-10 w-10 rounded-xl bg-primary text-black flex items-center justify-center font-black shadow-lg shadow-primary/20">G</div>
                             <div className="min-w-0">
-                                <p className="font-semibold leading-none text-white">GoUnion Chats</p>
+                                <p className="font-semibold leading-none text-white">Konnect Chats</p>
                                 <p className="text-xs text-white/40 mt-1">Direct Messages</p>
                             </div>
                         </Link>
@@ -721,7 +721,7 @@ export const Messages = ({ embeddedChatId }) => {
                             </header>
 
                             <div className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 md:px-10 py-6" onClick={() => setActiveMessageMenu(null)}>
-                                <div className="absolute inset-0 opacity-60 pointer-events-none bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.05),transparent_25%),radial-gradient(circle_at_85%_30%,rgba(196,255,14,0.04),transparent_22%)]" />
+                                <div className="absolute inset-0 opacity-60 pointer-events-none bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.05),transparent_25%),radial-gradient(circle_at_85%_30%,rgba(34,211,238,0.04),transparent_22%)]" />
                                 
                                 <div className="relative space-y-5 pb-4">
                                     {(messagesLoading || isChatPreparing) ? (
@@ -753,7 +753,7 @@ export const Messages = ({ embeddedChatId }) => {
                                                         {index === firstUnreadIndex && (
                                                             <div className="flex items-center gap-4 my-4 w-full px-2">
                                                                 <div className="flex-1 h-px bg-primary/20"></div>
-                                                                <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md shadow-[0_0_10px_rgba(196,255,14,0.1)]">New Messages</span>
+                                                                <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md shadow-[0_0_10px_rgba(34,211,238,0.1)]">New Messages</span>
                                                                 <div className="flex-1 h-px bg-primary/20"></div>
                                                             </div>
                                                         )}
@@ -837,7 +837,7 @@ export const Messages = ({ embeddedChatId }) => {
                                                                         e.preventDefault();
                                                                         setActiveMessageMenu(activeMessageMenu === msg.id ? null : msg.id);
                                                                     }}
-                                                                    className={`relative rounded-2xl px-3 py-2 shadow-md border cursor-pointer select-none transition-all duration-500 ${highlightedMsgId === msg.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-[#0a0a0c] scale-[1.02]' : ''} ${mine ? "bg-primary text-black border-primary/20 rounded-br-md active:scale-[0.99] hover:brightness-[0.98]" : (!msg.isRead ? "bg-[#151512] text-white border-primary/20 rounded-bl-md shadow-[0_0_15px_rgba(196,255,14,0.04)] active:scale-[0.99]" : "bg-[#111114] text-white border-white/10 rounded-bl-md active:scale-[0.99] hover:bg-[#151519]")}`}
+                                                                    className={`relative rounded-2xl px-3 py-2 shadow-md border cursor-pointer select-none transition-all duration-500 ${highlightedMsgId === msg.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-[#0a0a0c] scale-[1.02]' : ''} ${mine ? "bg-primary text-black border-primary/20 rounded-br-md active:scale-[0.99] hover:brightness-[0.98]" : (!msg.isRead ? "bg-[#151512] text-white border-primary/20 rounded-bl-md shadow-[0_0_15px_rgba(34,211,238,0.04)] active:scale-[0.99]" : "bg-[#111114] text-white border-white/10 rounded-bl-md active:scale-[0.99] hover:bg-[#151519]")}`}
                                                                 >
                                                                     {repliedMsg && (
         <div onClick={() => { document.getElementById(`msg-${repliedMsg.id}`)?.scrollIntoView({behavior: 'smooth', block: 'center'}); setHighlightedMsgId(repliedMsg.id); setTimeout(() => setHighlightedMsgId(null), 2000); }} className={`cursor-pointer hover:opacity-80 transition-opacity mb-2 p-2 rounded-xl border-l-2 text-xs ${mine ? "bg-black/10 border-black text-black/70" : "bg-black/30 border-primary text-white/70"}`}>
@@ -1108,7 +1108,7 @@ export const Messages = ({ embeddedChatId }) => {
                                                     <Mic size={20} />
                                                 </button>
                                             ) : (
-                                                <button onClick={handleSend} disabled={isTempChat || sendMessageMutation.isPending} className="h-9 w-9 mr-1 mb-1 rounded-full bg-primary text-black flex items-center justify-center disabled:opacity-40 shrink-0 self-end shadow-[0_0_15px_rgba(196,255,14,0.4)] hover:scale-105 transition-transform">
+                                                <button onClick={handleSend} disabled={isTempChat || sendMessageMutation.isPending} className="h-9 w-9 mr-1 mb-1 rounded-full bg-primary text-black flex items-center justify-center disabled:opacity-40 shrink-0 self-end shadow-[0_0_15px_rgba(34,211,238,0.4)] hover:scale-105 transition-transform">
                                                     <Send size={16} className="ml-0.5" />
                                                 </button>
                                             )}
@@ -1135,7 +1135,7 @@ export const Messages = ({ embeddedChatId }) => {
                                 <div className="mx-auto h-24 w-24 rounded-3xl border border-white/10 bg-[#111114] flex items-center justify-center text-primary mb-6 shadow-2xl">
                                     <MessageSquarePlus size={34} />
                                 </div>
-                                <h1 className="text-3xl font-serif text-white">GoUnion Messages</h1>
+                                <h1 className="text-3xl font-serif text-white">Konnect Messages</h1>
                                 <p className="mt-3 text-sm leading-6 text-white/40">Select a chat from the left or search to start a new conversation.</p>
                             </div>
                         </div>
@@ -1150,7 +1150,7 @@ export const Messages = ({ embeddedChatId }) => {
                                 <div className="flex items-center justify-between border-b border-white/5 p-5">
                                     <div>
                                         <h2 className="text-lg font-black text-white">Contacts & Suggestions</h2>
-                                        <p className="mt-1 text-xs text-white/40">Connect with people on GoUnion.</p>
+                                        <p className="mt-1 text-xs text-white/40">Connect with people on Konnect.</p>
                                     </div>
                                     <button onClick={() => setIsSuggestionsOpen(false)} className="h-10 w-10 rounded-xl text-white/50 hover:bg-white/5 hover:text-white">
                                         <X size={20} />

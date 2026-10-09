@@ -11,7 +11,7 @@ self.addEventListener('push', function(event) {
       }
     };
     event.waitUntil(
-      self.registration.showNotification(payload.title || 'Reconnected', options)
+      self.registration.showNotification(payload.title || 'Konnect', options)
     );
   } catch (err) {
     console.error('Error handling push event:', err);

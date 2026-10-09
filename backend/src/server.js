@@ -23,7 +23,7 @@ connectDatabase()
     initSocket(server);
     const port = process.env.PORT || 5000;
     server.listen(port, '0.0.0.0', () => {
-      console.log(`GoUnion Express API listening on http://0.0.0.0:${port}`);
+      console.log(`Konnect Express API listening on http://0.0.0.0:${port}`);
     });
   })
   .catch((error) => {

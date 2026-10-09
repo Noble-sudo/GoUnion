@@ -226,7 +226,7 @@ export const GroupDetails = () => {
     try {
       await navigator.share({
         title: group?.name || "Circle",
-        text: `Join ${group?.name} on Reconnected!`,
+        text: `Join ${group?.name} on Konnect!`,
         url: window.location.href,
       });
     } catch (e) {

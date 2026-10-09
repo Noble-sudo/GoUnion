@@ -27,6 +27,13 @@ postsRouter.get(
       ? { video: { $nin: [null, ''] }, is_taken_down: { $ne: true }, group_id: null }
       : { is_taken_down: { $ne: true }, group_id: null };
     
+    if (req.query.type === 'media') {
+      baseQuery.$or = [{ image: { $nin: [null, ''] } }, { video: { $nin: [null, ''] } }];
+    } else if (req.query.type === 'text') {
+      baseQuery.image = { $in: [null, ''] };
+      baseQuery.video = { $in: [null, ''] };
+    }
+
     let query = baseQuery;
     if (req.query.target_institution_id) {
       query.institution_id = req.query.target_institution_id;

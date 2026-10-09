@@ -10,9 +10,9 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
     
     const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? window.location.origin 
-        : 'https://gounion.me';
+        : 'https://reconencted.com';
     const inviteLink = `${baseUrl}/`;
-    const shareMessage = `Hey! Join me on Reconnected. Enter our campus GoUnion, explore the Pulse, and connect with Circles. Plus, get ready for the Teaky campus marketplace. Join here: ${inviteLink}`;
+    const shareMessage = `Hey! Join me on Konnect, our campus community for groups, events and chats. Join here: ${inviteLink}`;
     
     const handleCopy = async () => {
         try {
@@ -34,7 +34,7 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
     };
     
     const shareToEmail = () => {
-        window.open(`mailto:?subject=Join%20Reconnected&body=${encodeURIComponent(shareMessage)}`, '_blank');
+        window.open(`mailto:?subject=Join%20Konnect&body=${encodeURIComponent(shareMessage)}`, '_blank');
     };
 
     return (
@@ -57,12 +57,12 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(196,255,14,0.1)] border border-primary/20">
+                                <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(34,211,238,0.1)] border border-primary/20">
                                     <Share2 size={20} />
                                 </div>
                                 <div>
                                     <h3 className="font-serif text-xl text-white">Invite Campus Friends</h3>
-                                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mt-0.5">Bring them into Reconnected</p>
+                                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mt-0.5">Bring them into Konnect</p>
                                 </div>
                             </div>
                             <button onClick={onClose} className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-full transition-colors">
@@ -72,7 +72,7 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
                         
                         <div className="space-y-4 py-2">
                             <p className="text-sm text-zinc-400 leading-relaxed">
-                                Share this with students from your school so they can join their own GoUnion space inside Reconnected.
+                                Share this with students from your school so they can join you on Konnect.
                             </p>
                             
                             <div className="relative flex items-center bg-white/5 border border-white/5 rounded-2xl p-4 gap-3">

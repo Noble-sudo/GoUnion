@@ -75,7 +75,7 @@ export const IosInstallPrompt = () => {
                 <span className="font-black text-black text-2xl">R</span>
               </div>
               <div>
-                <h2 className="text-lg font-black text-white tracking-tight">Install Reconnected</h2>
+                <h2 className="text-lg font-black text-white tracking-tight">Install Konnect</h2>
                 <p className="text-xs text-white/40 mt-0.5">Get the full app experience on your iPhone</p>
               </div>
             </div>
@@ -122,7 +122,7 @@ export const IosInstallPrompt = () => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-white">3. Tap "Add" to confirm</p>
-                  <p className="text-xs text-white/40 mt-0.5">Reconnected will appear on your home screen</p>
+                  <p className="text-xs text-white/40 mt-0.5">Konnect will appear on your home screen</p>
                 </div>
               </div>
             </div>

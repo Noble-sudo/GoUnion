@@ -74,14 +74,14 @@ export const PwaInstallBanner = () => {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-[420px] z-[9999] px-5 py-4 bg-[var(--rc-go)] text-black shadow-[0_10px_40px_rgba(199,249,79,0.3)] rounded-2xl flex items-center justify-between border border-black/20"
+        className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-[420px] z-[9999] px-5 py-4 bg-[var(--rc-go)] text-black shadow-[0_10px_40px_rgba(34,211,238,0.3)] rounded-2xl flex items-center justify-between border border-black/20"
       >
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-black text-white rounded-[10px] flex items-center justify-center font-serif text-xl font-black italic shadow-sm">
             R
           </div>
           <div>
-            <h4 className="font-black text-sm uppercase tracking-wider">Install Reconnected</h4>
+            <h4 className="font-black text-sm uppercase tracking-wider">Install Konnect</h4>
             <p className="text-xs font-semibold opacity-70">Add to your home screen for a better experience</p>
           </div>
         </div>

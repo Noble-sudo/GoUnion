@@ -55,7 +55,7 @@ export const StatusCircles = () => {
     };
     const getStoryRingClass = (stories, isOwn = false) => !isOwn && stories.length > 0 && stories.every((story) => story.isViewed)
         ? "bg-white/15 opacity-60 grayscale"
-        : "story-ring shadow-[0_0_20px_rgba(196,255,14,0.15)]";
+        : "story-ring shadow-[0_0_20px_rgba(34,211,238,0.15)]";
     return (_jsxs("div", { className: "flex gap-4 overflow-x-auto hide-scrollbar px-4 mb-4", children: [_jsxs("div", { className: "flex flex-col items-center gap-2 group cursor-pointer shrink-0", children: [_jsxs("div", { onClick: () => myStories.length > 0 ? openViewer({ stories: myStories, user }) : setIsModalOpen(true), className: `relative w-16 h-16 rounded-full p-[2px] transition-all duration-300 group-hover:scale-105 ${myStories.length > 0 ? getStoryRingClass(myStories, true) : 'bg-white/10'}`, children: [_jsxs("div", { className: "w-full h-full rounded-full border-2 border-[#030303] overflow-hidden flex items-center justify-center bg-white/5", children: [user?.avatarUrl ? (_jsx(Avatar, { src: user.avatarUrl, alt: "You", label: user.fullName, className: `w-full h-full object-cover transition-opacity ${myStories.length > 0 ? "opacity-100" : "opacity-40"}` })) : (_jsx("div", { className: "w-full h-full bg-white/5" })), myStories.length === 0 && (_jsx(Plus, { className: "absolute w-6 h-6 text-white/40 group-hover:text-white transition-colors" }))] }), myStories.length > 0 && (_jsx("button", { type: "button", onClick: (e) => {
                                     e.stopPropagation();
                                     setIsModalOpen(true);

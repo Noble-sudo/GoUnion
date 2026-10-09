@@ -5,7 +5,7 @@ import { useAuthStore } from "../store";
 
 const futureSignals = [
   ["Student listings", "Campus-first buying, selling, and trading."],
-  ["Verified identity", "Marketplace trust connected to Reconnected accounts."],
+  ["Verified identity", "Marketplace trust connected to Konnect accounts."],
   ["Local exchange", "Designed around students meeting where they already belong."],
 ];
 
@@ -28,7 +28,7 @@ export const Teaky = () => {
                 <ShoppingBag size={23} />
               </span>
               <div>
-                <p className="rc-label">Reconnected product</p>
+                <p className="rc-label">Konnect product</p>
                 <h1 className="mt-1 text-3xl font-black tracking-tight text-white">Teaky</h1>
               </div>
             </div>
@@ -40,7 +40,7 @@ export const Teaky = () => {
           <p className="rc-label text-[var(--rc-teaky)]">Teaky for {campusName}</p>
           <h2 className="mt-4 font-serif text-5xl leading-none text-white sm:text-6xl">Buy. Sell. Trade.</h2>
           <p className="mt-6 max-w-xl text-base leading-8 text-white/58">
-            We are building a marketplace designed around students at {campusName}. Teaky is part of Reconnected, but it has not launched yet.
+            We are building a marketplace designed around students at {campusName}. Teaky is part of Konnect, but it has not launched yet.
           </p>
 
           <div className="mt-10 grid gap-3 sm:grid-cols-3">
@@ -72,9 +72,9 @@ export const Teaky = () => {
 
           <div className="rc-surface rounded-[2rem] p-6">
             <ShieldCheck className="text-[var(--rc-warm)]" size={24} />
-            <h3 className="mt-5 text-xl font-black text-white">Built on Reconnected identity</h3>
+            <h3 className="mt-5 text-xl font-black text-white">Built on Konnect identity</h3>
             <p className="mt-3 text-sm leading-6 text-white/50">
-              The future marketplace will rely on the same account, campus, and trust layer students already use in GoUnion at {campusName}.
+              The future marketplace will rely on the same account, campus, and trust layer students already use in Konnect at {campusName}.
             </p>
           </div>
 

@@ -134,7 +134,7 @@ export const AudioPlayer = ({ src, mine, senderAvatar, senderName }) => {
                                     style={{ 
                                         height: `${height}px`,
                                         backgroundColor: isActive 
-                                            ? (mine ? '#000000' : '#c4ff0e') 
+                                            ? (mine ? '#000000' : '#22d3ee') 
                                             : (mine ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.2)')
                                     }}
                                  />

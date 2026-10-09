@@ -127,7 +127,7 @@ export const StoryViewer = ({ isOpen, onClose, stories, currentUser, }) => {
         const text = displayStory.content || `Check out this story from @${displayStory.user?.username}`;
         try {
             if (navigator.share) {
-                await navigator.share({ title: "GoUnion Story", text, url });
+                await navigator.share({ title: "Konnect Story", text, url });
             }
             else {
                 await navigator.clipboard.writeText(`${text}\n${url}`);
@@ -158,6 +158,6 @@ export const StoryViewer = ({ isOpen, onClose, stories, currentUser, }) => {
                                         onClose();
                                     }
                                 } })] }), _jsxs("div", { className: "absolute bottom-10 left-6 right-6 flex items-center justify-between z-30", children: [_jsxs("div", { className: "flex items-center gap-3 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10", children: [_jsxs("div", { className: "flex items-center gap-1.5", children: [_jsx(Eye, { size: 16, className: "text-zinc-400" }), _jsx("span", { className: "text-white text-xs font-bold", children: displayStory.viewsCount || 0 })] }), _jsx("div", { className: "w-[1px] h-3 bg-white/20" }), _jsxs("div", { className: "flex items-center gap-1.5", children: [_jsx(Heart, { size: 16, className: "text-zinc-400" }), _jsx("span", { className: "text-white text-xs font-bold", children: displayStory.likesCount || 0 })] })] }), _jsxs("div", { className: "flex items-center gap-3", children: [_jsx(motion.button, { whileTap: { scale: 0.9 }, onClick: handleShare, className: "p-3 rounded-full bg-white/10 border border-white/10 text-white hover:bg-white/20 transition-all duration-300", children: _jsx(Share2, { size: 20 }) }), _jsx(motion.button, { whileTap: { scale: 0.9 }, onClick: handleLike, className: `p-3 rounded-full border transition-all duration-300 ${displayStory.isLiked
-                                            ? "bg-primary border-primary text-black shadow-[0_0_20px_rgba(196,255,14,0.4)]"
+                                            ? "bg-primary border-primary text-black shadow-[0_0_20px_rgba(34,211,238,0.4)]"
                                             : "bg-white/10 border-white/10 text-white hover:bg-white/20"}`, children: _jsx(Heart, { size: 20, fill: displayStory.isLiked ? "currentColor" : "none" }) })] })] })] }) })) }));
 };

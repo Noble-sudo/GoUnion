@@ -573,11 +573,14 @@ export const api = {
         },
     },
     posts: {
-        getFeed: async ({ pageParam = 0, seed } = {}) => {
+        getFeed: async ({ pageParam = 0, seed, type } = {}) => {
             const query = new URLSearchParams({
                 skip: String(pageParam * 10),
                 limit: '10',
             });
+            if (type) {
+                query.set('type', type);
+            }
             if (typeof seed === 'number') {
                 query.set('seed', seed.toFixed(8));
             }

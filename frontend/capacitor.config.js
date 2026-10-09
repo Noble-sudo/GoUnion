@@ -1,6 +1,6 @@
 const config = {
     appId: "com.gounion.app",
-    appName: "GoUnion",
+    appName: "Konnect",
     webDir: "dist",
     server: {
         androidScheme: "https",

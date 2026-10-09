@@ -34,7 +34,7 @@ export const Dashboard = () => {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, error } = useInfiniteQuery({
     queryKey: ["feed"],
-    queryFn: ({ pageParam }) => api.posts.getFeed({ pageParam }),
+    queryFn: ({ pageParam }) => api.posts.getFeed({ pageParam, type: 'media' }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => lastPage.length > 0 ? allPages.length : undefined,
   });
@@ -195,7 +195,7 @@ export const Dashboard = () => {
                     <p className="rc-label">Campus Pulse is quiet</p>
                     <h2 className="mt-3 text-2xl font-black text-white">Be the first to drop something.</h2>
                     <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/42">
-                      Start with a question, campus update, event, or thought your community can respond to.
+                      Share a photo or video from around campus. Thoughts and writeups live in Takes.
                     </p>
                   </div>
                 )

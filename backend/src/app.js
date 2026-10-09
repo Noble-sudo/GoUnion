@@ -48,7 +48,7 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
 
 app.get('/', (_req, res) => {
-  res.json({ message: 'GoUnion Express API is running.', health: '/health' });
+  res.json({ message: 'Konnect Express API is running.', health: '/health' });
 });
 
 app.get('/health', (_req, res) => {
