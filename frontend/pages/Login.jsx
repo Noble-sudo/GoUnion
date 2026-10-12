@@ -129,17 +129,17 @@ export const Login = () => {
           <section className="hidden min-h-[680px] flex-col justify-between border-r border-white/10 bg-white/[0.025] p-8 lg:flex">
             <Link to="/download" className="flex w-fit items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-xl font-black text-black">R</span>
-              <span className="text-sm font-black uppercase tracking-[0.18em]">Reconnected</span>
+              <span className="text-sm font-black uppercase tracking-[0.18em]">Konnect</span>
             </Link>
             <div>
-              <p className="rc-label mb-5">Join a verified campus</p>
+              <p className="rc-label mb-5">Join your campus</p>
               <h1 className="font-serif text-6xl leading-none">Your campus is waiting.</h1>
-              <p className="mt-6 max-w-md text-sm leading-7 text-white/52">Create one Reconnected identity, then step into GoUnion for community today and Teaky when the marketplace opens.</p>
+              <p className="mt-6 max-w-md text-sm leading-7 text-white/52">Create your Konnect account and step into your campus community. Teaky, the marketplace, is coming soon.</p>
             </div>
             <div className="grid gap-3">
               <div className="rounded-2xl border border-[rgba(34,211,238,0.2)] bg-[var(--rc-go-soft)] p-4">
-                <p className="text-xs font-black uppercase tracking-widest text-[var(--rc-go)]">GoUnion</p>
-                <p className="mt-1 text-sm text-white/70">Campus community, Pulse, Circles, Messages.</p>
+                <p className="text-xs font-black uppercase tracking-widest text-[var(--rc-go)]">Konnect</p>
+                <p className="mt-1 text-sm text-white/70">Campus community: Pulse, Takes, groups and chats.</p>
               </div>
               <div className="rounded-2xl border border-[rgba(104,212,255,0.2)] bg-[var(--rc-teaky-soft)] p-4">
                 <p className="text-xs font-black uppercase tracking-widest text-[var(--rc-teaky)]">Teaky</p>
@@ -152,12 +152,12 @@ export const Login = () => {
             <div className="mb-8 flex items-center justify-between lg:hidden">
               <Link to="/download" className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-black font-black">R</span>
-                <span className="text-xs font-black uppercase tracking-[0.18em]">Reconnected</span>
+                <span className="text-xs font-black uppercase tracking-[0.18em]">Konnect</span>
               </Link>
             </div>
 
             <div className="mb-8">
-              <p className="rc-label">{isSignup ? "Create Reconnected identity" : "Welcome to Reconnected"}</p>
+              <p className="rc-label">{isSignup ? "Create your Konnect account" : "Welcome to Konnect"}</p>
               <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{isSignup ? steps[step] : "Sign in"}</h2>
               <p className="mt-3 text-sm leading-6 text-white/45">{isSignup ? "A short setup before email verification." : "Continue into your campus ecosystem."}</p>
             </div>
@@ -287,7 +287,7 @@ export const Login = () => {
             )}
 
             <button type="button" onClick={switchMode} className="mt-8 w-full text-center text-sm text-white/45 transition hover:text-white">
-              {isSignup ? "Already have a Reconnected account? Sign in" : "New to Reconnected? Create your campus identity"}
+              {isSignup ? "Already have a Konnect account? Sign in" : "New to Konnect? Create your account"}
             </button>
           </section>
         </div>

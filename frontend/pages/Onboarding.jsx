@@ -88,7 +88,7 @@ export const Onboarding = () => {
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-2xl items-center justify-center">
         <div className="w-full rounded-[2rem] border border-white/10 bg-white/[0.025] p-5 shadow-2xl sm:p-8">
           <div className="mb-8">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Reconnected Identity</p>
+            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Konnect Identity</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
               {step === 0 ? "Select your campus" : step === 1 ? "Verification Method" : step === 2 ? "Verify Identity" : "Request Submitted"}
             </h1>
@@ -222,7 +222,7 @@ export const Onboarding = () => {
                 </p>
                 <div className="mt-8 flex items-center justify-center gap-2 text-xs text-white/40">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                  Entering Reconnected...
+                  Entering Konnect...
                 </div>
               </motion.div>
             )}

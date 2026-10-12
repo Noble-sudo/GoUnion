@@ -35,7 +35,7 @@ export const DownloadPage = () => {
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
         <button onClick={() => navigate('/')} className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white text-base font-black text-black">R</span>
-          <span className="text-sm font-black uppercase tracking-[0.18em] text-white">Reconnected</span>
+          <span className="text-sm font-black uppercase tracking-[0.18em] text-white">Konnect</span>
         </button>
         <button onClick={() => navigate('/login')} className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/70 transition hover:border-white/25 hover:text-white">
           Sign in
@@ -45,23 +45,23 @@ export const DownloadPage = () => {
       <main className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-16 pt-4 sm:px-8 lg:grid-cols-[1fr_0.9fr]">
         <section className="max-w-3xl">
           <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rc-label mb-5">
-            Reconnected for Nigerian campuses
+            Konnect for Nigerian campuses
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="max-w-4xl font-serif text-5xl leading-[0.98] text-white sm:text-7xl lg:text-8xl">
             Your campus. Your people. Your connection.
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mt-7 max-w-2xl text-base leading-8 text-white/62 sm:text-lg">
-            Reconnected brings your campus community, conversations, events and future marketplace into one serious platform built around verified student life.
+            Konnect brings your campus community, conversations, events and future marketplace into one platform built around student life.
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="mt-9 flex flex-col gap-3 sm:flex-row">
             {isInstalled ? (
               <button onClick={() => navigate('/login')} className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-white px-6 text-sm font-black text-black transition hover:bg-white/90">
-                Open Reconnected <Smartphone size={18} />
+                Open Konnect <Smartphone size={18} />
               </button>
             ) : installPrompt ? (
               <button onClick={handleInstall} className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-white px-6 text-sm font-black text-black transition hover:bg-white/90">
-                Install GoUnion <Download size={18} />
+                Install Konnect <Download size={18} />
               </button>
             ) : (
               <button onClick={() => setShowInstallHelp(true)} className="inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-white px-6 text-sm font-black text-black transition hover:bg-white/90">
@@ -77,7 +77,7 @@ export const DownloadPage = () => {
             <div className="mt-4 grid max-w-xl gap-2 text-xs leading-5 text-white/45 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                 <p className="mb-1 font-black text-white">iPhone</p>
-                <p>Tap Share, choose Add to Home Screen, then open GoUnion from your home screen.</p>
+                <p>Tap Share, choose Add to Home Screen, then open Konnect from your home screen.</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                 <p className="mb-1 font-black text-white">Android</p>
@@ -107,7 +107,7 @@ export const DownloadPage = () => {
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <p className="rc-label">Current product</p>
-                <h2 className="mt-2 text-2xl font-black text-white">GoUnion</h2>
+                <h2 className="mt-2 text-2xl font-black text-white">Konnect</h2>
               </div>
               <span className="rc-product-go rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest">Active</span>
             </div>
@@ -126,7 +126,7 @@ export const DownloadPage = () => {
               ))}
             </div>
             <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black">
-              <img src="/screenshot-main.png" alt="GoUnion Campus Pulse preview" className="h-72 w-full object-cover object-top opacity-90" />
+              <img src="/screenshot-main.png" alt="Konnect Campus Pulse preview" className="h-72 w-full object-cover object-top opacity-90" />
             </div>
           </div>
 
@@ -140,7 +140,7 @@ export const DownloadPage = () => {
             <div className="rc-surface rounded-[2rem] p-5">
               <ShieldCheck className="text-[var(--rc-warm)]" size={24} />
               <h3 className="mt-5 text-xl font-black text-white">School scoped</h3>
-              <p className="mt-2 text-sm leading-6 text-white/50">Students enter the GoUnion and Teaky space for their own institution.</p>
+              <p className="mt-2 text-sm leading-6 text-white/50">Students join the space for their own institution: Konnect today, Teaky soon.</p>
               <div className="mt-5 flex items-center gap-2 text-xs font-bold text-white/45"><CheckCircle2 size={14} /> Architecture ready</div>
             </div>
           </div>
