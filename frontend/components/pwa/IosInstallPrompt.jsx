@@ -71,8 +71,8 @@ export const IosInstallPrompt = () => {
 
             {/* App icon + title */}
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg">
-                <span className="font-black text-black text-2xl">R</span>
+              <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+                <span className="font-black text-black text-2xl">K</span>
               </div>
               <div>
                 <h2 className="text-lg font-black text-white tracking-tight">Install Konnect</h2>

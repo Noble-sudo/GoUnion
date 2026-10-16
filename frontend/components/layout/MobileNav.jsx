@@ -86,7 +86,7 @@ export const MobileNav = () => {
 
                 <div className="relative -top-5 px-2">
                     <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`relative flex items-center justify-center w-14 h-14 rounded-full bg-primary shadow-[0_4px_20px_rgba(34,211,238,0.4)] text-black font-serif font-black text-2xl transition-transform hover:scale-105 active:scale-95 z-[165]`}>
-                        R
+                        K
                         {unreadCount > 0 && (
                             <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-[#050505]" />
                         )}

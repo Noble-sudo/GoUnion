@@ -354,8 +354,8 @@ export const Landing = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="flex items-center gap-3"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.15)]">
-            <span className="font-serif text-2xl font-black italic">R</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-primary text-black shadow-[0_0_30px_rgba(34,211,238,0.25)]">
+            <span className="font-serif text-2xl font-black italic">K</span>
           </div>
           <span className="text-xl font-black tracking-tighter">RECONNECTED</span>
         </motion.div>
@@ -596,7 +596,7 @@ export const Landing = () => {
       <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#020202]">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white">
-            <span className="font-serif text-xl font-black italic opacity-50">R</span>
+            <span className="font-serif text-xl font-black italic opacity-50">K</span>
           </div>
           <span className="text-sm font-black tracking-tighter text-white/30">RECONNECTED</span>
         </div>

@@ -47,7 +47,7 @@ export const Sidebar = () => {
     <motion.aside initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.45 }} className="fixed left-0 top-0 z-40 hidden h-screen w-72 flex-col border-r border-white/10 bg-[rgba(4,5,6,0.78)] backdrop-blur-2xl md:flex">
       <div className="p-5">
         <Link to="/" className="flex items-center gap-3 mb-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg font-black text-black">R</span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-lg font-black text-black">K</span>
           <span>
             
           </span>

@@ -78,7 +78,7 @@ export const PwaInstallBanner = () => {
       >
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-black text-white rounded-[10px] flex items-center justify-center font-serif text-xl font-black italic shadow-sm">
-            R
+            K
           </div>
           <div>
             <h4 className="font-black text-sm uppercase tracking-wider">Install Konnect</h4>

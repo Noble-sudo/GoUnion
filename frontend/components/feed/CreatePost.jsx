@@ -8,7 +8,7 @@ import { useToast } from "../ui/Toast";
 import { CameraModal } from "../chat/CameraModal";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const CreatePost = ({ profileUsername, groupId }) => {
+export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
   const { user } = useAuthStore();
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
@@ -77,12 +77,12 @@ export const CreatePost = ({ profileUsername, groupId }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!content.trim() && !selectedFile) return;
+    if (mediaOnly ? !selectedFile : (!content.trim() && !selectedFile)) return;
     mutation.mutate({ caption: content, image: selectedFile, group_id: groupId });
   };
 
   return (
-    <div className={`rounded-2xl border transition-colors duration-300 ${isFocused ? 'border-blue-500/30 bg-blue-500/[0.02]' : 'border-white/5 bg-white/[0.02] hover:border-white/10'} p-4`}>
+    <div className={`rounded-2xl border transition-colors duration-300 ${isFocused ? 'border-primary/30 bg-primary/[0.02]' : 'border-white/5 bg-white/[0.02] hover:border-white/10'} p-4`}>
       <form onSubmit={handleSubmit} className="flex gap-4">
         <img 
           src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.fullName}&background=random`} 
@@ -94,7 +94,7 @@ export const CreatePost = ({ profileUsername, groupId }) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onFocus={() => { setIsFocused(true); setIsEmojiPickerOpen(false); }}
-            placeholder="What's happening on campus?"
+            placeholder={mediaOnly ? "Share a photo or video from campus..." : "What's happening on campus?"}
             className={`w-full resize-none border-none bg-transparent text-base text-white placeholder:text-white/30 focus:outline-none focus:ring-0 transition-all ${isFocused || content.trim() || selectedFile ? 'min-h-[80px]' : 'min-h-[40px]'}`}
           />
           
@@ -118,19 +118,19 @@ export const CreatePost = ({ profileUsername, groupId }) => {
           </AnimatePresence>
 
           <AnimatePresence>
-            {(isFocused || content.trim() || selectedFile) && (
+            {(mediaOnly || isFocused || content.trim() || selectedFile) && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 flex items-center justify-between border-t border-white/5 pt-3">
                 <div className="flex gap-1">
                   <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                   <input type="file" ref={cameraInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" capture="environment" />
                   
                   <button type="button" onClick={() => { if (!isEmojiPickerOpen) document.activeElement?.blur(); setIsEmojiPickerOpen(!isEmojiPickerOpen); }} className="rounded-full p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Emoji">
-                      {isEmojiPickerOpen ? <Keyboard className="h-5 w-5 text-blue-400" /> : <Smile className="h-5 w-5" />}
+                      {isEmojiPickerOpen ? <Keyboard className="h-5 w-5 text-primary" /> : <Smile className="h-5 w-5" />}
                     </button>
                     <button type="button" onClick={() => setShowCamera(true)} className="rounded-full p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Camera">
                     <Camera className="h-5 w-5" />
                   </button>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full p-2 text-blue-400/70 transition-colors hover:bg-blue-400/20 hover:text-blue-400" title="Photo/Video">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full p-2 text-primary/70 transition-colors hover:bg-primary/20 hover:text-primary" title="Photo/Video">
                     <ImageIcon className="h-5 w-5" />
                   </button>
                   <button type="button" className="rounded-full p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Tag Location">
@@ -139,8 +139,8 @@ export const CreatePost = ({ profileUsername, groupId }) => {
                 </div>
                 <button
                   type="submit"
-                  disabled={(!content.trim() && !selectedFile) || mutation.isPending}
-                  className="rounded-full bg-blue-500 px-5 py-1.5 text-sm font-bold text-white transition-all hover:bg-blue-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={(mediaOnly ? !selectedFile : (!content.trim() && !selectedFile)) || mutation.isPending}
+                  className="rounded-full bg-primary px-5 py-1.5 text-sm font-bold text-black transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {mutation.isPending ? "Posting..." : "Post"}
                 </button>

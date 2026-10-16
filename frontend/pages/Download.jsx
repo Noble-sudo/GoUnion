@@ -34,7 +34,7 @@ export const DownloadPage = () => {
     <div className="min-h-screen w-full overflow-x-hidden bg-[var(--rc-bg)] text-[var(--rc-text)]">
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
         <button onClick={() => navigate('/')} className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white text-base font-black text-black">R</span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-primary text-base font-black text-black">K</span>
           <span className="text-sm font-black uppercase tracking-[0.18em] text-white">Konnect</span>
         </button>
         <button onClick={() => navigate('/login')} className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/70 transition hover:border-white/25 hover:text-white">

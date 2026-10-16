@@ -88,21 +88,7 @@ export const Dashboard = () => {
     <div className="w-full px-0 pb-24 pt-0">
       <WelcomeTour />
       
-      {/* Campus Header */}
-      <div className="px-5 sm:px-8 pt-8 pb-3 md:pt-10 md:pb-3 bg-[#030303]/80 backdrop-blur-xl sticky top-0 z-40 hidden md:block">
-        <div className="max-w-2xl mx-auto w-full">
-        
-
-          
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-white">{greeting}, {firstName}.</h1>
-        </div>
-      </div>
       
-      {/* Mobile Campus Header */}
-      <div className="px-5 pt-6 pb-2 block md:hidden">
-        
-        <h1 className="font-serif text-2xl font-bold tracking-tight text-white">{greeting}, {firstName}.</h1>
-      </div>
 
       <div className="max-w-2xl mx-auto w-full">
         
@@ -124,7 +110,7 @@ export const Dashboard = () => {
         <FollowBackUrge className="mt-4 block lg:hidden mx-5" />
 
         {/* Tab System */}
-        <div className="px-5 sm:px-0 mb-6 mt-0">
+        <div className="px-5 sm:px-0 mb-6 mt-4 md:mt-8">
           <div className="flex items-center justify-between sm:justify-start sm:gap-1 border-b border-white/10 pb-px">
             {TABS.map(tab => (
               <button 
@@ -144,6 +130,9 @@ export const Dashboard = () => {
         
 
         <StatusCircles />
+        <div className="px-5 sm:px-0 mb-6">
+          <CreatePost mediaOnly />
+        </div>
 
         <div className="w-full space-y-6 sm:px-0 mt-6">
           {status === "pending" ? (

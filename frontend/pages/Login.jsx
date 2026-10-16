@@ -128,7 +128,7 @@ export const Login = () => {
         <div className="grid w-full grid-cols-1 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.025] shadow-2xl lg:grid-cols-[0.95fr_1.05fr]">
           <section className="hidden min-h-[680px] flex-col justify-between border-r border-white/10 bg-white/[0.025] p-8 lg:flex">
             <Link to="/download" className="flex w-fit items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-xl font-black text-black">R</span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-xl font-black text-black">K</span>
               <span className="text-sm font-black uppercase tracking-[0.18em]">Konnect</span>
             </Link>
             <div>
@@ -151,7 +151,7 @@ export const Login = () => {
           <section className="p-5 sm:p-8 lg:p-10">
             <div className="mb-8 flex items-center justify-between lg:hidden">
               <Link to="/download" className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-black font-black">R</span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-black font-black">K</span>
                 <span className="text-xs font-black uppercase tracking-[0.18em]">Konnect</span>
               </Link>
             </div>
