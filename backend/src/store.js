@@ -322,6 +322,8 @@ export const addNotification = async ({ user_id, sender_id, type, post_id = null
     if (subscriptions.length > 0) {
       let bodyText = message;
       let titleText = 'Konnect';
+      let pushUrl = null;
+      let pushTag = null;
       
       const actor = await User.findOne({ id: sender_id });
       const actorName = actor ? (actor.profile?.full_name || actor.username) : 'Someone';
@@ -333,9 +335,13 @@ export const addNotification = async ({ user_id, sender_id, type, post_id = null
             const Group = (await import('./models.js')).Group;
             const grp = await Group.findOne({ id: conv.group_id });
             titleText = grp ? grp.name : 'Group Message';
+            pushUrl = '/groups/' + conv.group_id;
+            pushTag = 'chat-group-' + conv.group_id;
             bodyText = `${actorName}: ${message}`;
         } else {
             titleText = actorName;
+            pushUrl = '/messages?user=' + sender_id;
+            pushTag = 'chat-' + sender_id;
             bodyText = message;
         }
       } else if (!bodyText) {
@@ -355,7 +361,8 @@ export const addNotification = async ({ user_id, sender_id, type, post_id = null
         body: bodyText,
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',
-        url: type === 'new_message' ? '/messages' : (post_id ? `/post/${post_id}` : '/notifications'),
+        url: pushUrl || (type === 'new_message' ? '/messages' : (post_id ? '/post/' + post_id : (type === 'follow' && actor ? '/profile/' + actor.username : (group_id ? '/groups/' + group_id : '/notifications')))),
+        tag: pushTag || (type + '-' + (post_id || group_id || sender_id)),
       });
       for (const sub of subscriptions) {
         try {
