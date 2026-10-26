@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Calendar, MessageSquare, Edit3, UserPlus, Check, X } from "lucide-react";
+import { MapPin, Calendar, MessageSquare, Edit3, UserPlus, Check, X, ShoppingBag, ChevronRight } from "lucide-react";
 import { useAuthStore } from "../store";
 import { motion, AnimatePresence } from "framer-motion";
 import { EditProfileModal } from "../components/profile/EditProfileModal";
@@ -39,6 +39,12 @@ export const Profile = () => {
     queryKey: ["profile-followers", user?.id],
     queryFn: () => api.profiles.getFollowers(user?.id || ""),
     enabled: !!user?.id,
+  });
+
+  const { data: shop } = useQuery({
+    queryKey: ["profile-shop", username],
+    queryFn: () => api.shops.byOwner(username || ""),
+    enabled: !!username,
   });
 
   const isFollowingProfile = followers.some(f => String(f.id) === String(currentUser?.id)) || Boolean(user?.is_following) || Boolean(user?.isFollowing);
@@ -217,6 +223,25 @@ export const Profile = () => {
             {user.bio || (isOwnProfile ? "Write something about yourself in your settings." : "No bio provided yet.")}
           </div>
         </div>
+
+        {/* Teaky shop */}
+        {(shop || isOwnProfile) && (
+          <Link
+            to={shop ? "/shop/" + shop.slug : "/teaky/my-shop"}
+            className="mb-8 flex max-w-2xl items-center gap-3 rounded-2xl border border-[rgba(104,212,255,0.2)] bg-[var(--rc-teaky-soft)] p-3"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black/30">
+              {shop && shop.logo ? <img src={shop.logo} alt="" className="h-full w-full object-cover" /> : <ShoppingBag size={20} className="text-[var(--rc-teaky)]" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--rc-teaky)]">Teaky shop</p>
+              <p className="truncate text-sm font-bold text-white">{shop ? shop.name : "Open your free shop"}</p>
+            </div>
+            <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-white/70">
+              {shop ? "Visit shop" : "Start"} <ChevronRight size={16} />
+            </span>
+          </Link>
+        )}
 
         {/* Tabs */}
         <div className="flex items-center gap-2 border-b border-white/10 pb-px mb-8">
