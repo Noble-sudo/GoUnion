@@ -15,6 +15,7 @@ import { saveVideoFile, shareVideoFile } from "../../utils/videoShare";
 export const PostCard = ({ post, defaultShowComments = false }) => {
     const { toast } = useToast();
     const [showComments, setShowComments] = React.useState(defaultShowComments);
+    useBackClose(showComments && !defaultShowComments, () => setShowComments(false));
     const queryClient = useQueryClient();
     const { user: currentUser } = useAuthStore();
     const [showMenu, setShowMenu] = React.useState(false);

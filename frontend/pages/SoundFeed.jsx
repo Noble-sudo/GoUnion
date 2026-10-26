@@ -1,3 +1,4 @@
+import { useBackClose } from "../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ export const SoundFeed = () => {
     const { user: currentUser } = useAuthStore();
     const [isMuted, setIsMuted] = useState(false);
     const [activeCommentPost, setActiveCommentPost] = useState(null);
+    useBackClose(!!activeCommentPost, () => setActiveCommentPost(null));
     const [loadedMedia, setLoadedMedia] = useState({});
     const loadMoreRef = useRef(null);
     const videoRefs = useRef({});
