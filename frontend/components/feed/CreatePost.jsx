@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
-import { Camera, Image as ImageIcon, X, MapPin, Smile, Keyboard } from "lucide-react";
+import { Camera, Image as ImageIcon, X, MapPin, Smile, Keyboard, Music } from "lucide-react";
+import { MusicPicker } from "./MusicPicker";
+import { encodeTrack } from "../../utils/audius";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { useAuthStore } from "../../store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +18,8 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [track, setTrack] = useState(null);
+  const [showMusic, setShowMusic] = useState(false);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const queryClient = useQueryClient();
@@ -34,6 +38,7 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       handleRemoveFile();
       setContent("");
+      setTrack(null);
       setIsFocused(false);
       toast("Posted successfully", "success");
     },
@@ -78,7 +83,7 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (mediaOnly ? !selectedFile : (!content.trim() && !selectedFile)) return;
-    mutation.mutate({ caption: content, image: selectedFile, group_id: groupId });
+    mutation.mutate({ caption: track ? (content.trim() ? content.trim() + "\n" : "") + encodeTrack(track) : content, image: selectedFile, group_id: groupId });
   };
 
   return (
@@ -117,6 +122,14 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
             )}
           </AnimatePresence>
 
+          {track && (
+            <div className="mt-3 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1.5 pl-3 pr-1.5">
+              <Music size={14} className="shrink-0 text-primary" />
+              <span className="min-w-0 flex-1 truncate text-xs font-bold text-white/80">{track.title} - {track.artist}</span>
+              <button type="button" onClick={() => setTrack(null)} className="rounded-full p-1.5 text-white/50 hover:bg-white/10" aria-label="Remove music"><X size={14} /></button>
+            </div>
+          )}
+
           <AnimatePresence>
             {(mediaOnly || isFocused || content.trim() || selectedFile) && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 flex items-center justify-between border-t border-white/5 pt-3">
@@ -132,6 +145,9 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
                   </button>
                   <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full p-2 text-primary/70 transition-colors hover:bg-primary/20 hover:text-primary" title="Photo/Video">
                     <ImageIcon className="h-5 w-5" />
+                  </button>
+                  <button type="button" onClick={() => { document.activeElement?.blur(); setShowMusic(true); }} className={"rounded-full p-2 transition-colors hover:bg-white/10 " + (track ? "text-primary" : "text-white/40 hover:text-white")} title="Music">
+                    <Music className="h-5 w-5" />
                   </button>
                   <button type="button" className="rounded-full p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Tag Location">
                     <MapPin className="h-5 w-5" />
@@ -154,6 +170,7 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
           <EmojiPicker theme={Theme.DARK} onEmojiClick={handleEmojiClick} lazyLoadEmojis={true} style={{ width: '100%', height: '350px', border: 'none', background: 'transparent' }} />
         </div>
       )}
+      {showMusic && <MusicPicker onClose={() => setShowMusic(false)} onPick={(t) => { setTrack(t); setShowMusic(false); }} />}
       {showCamera && <CameraModal onClose={() => setShowCamera(false)} onCapture={(file) => { setSelectedFile(file); setPreviewUrl(URL.createObjectURL(file)); setShowCamera(false); }} />}
     </div>
   );
