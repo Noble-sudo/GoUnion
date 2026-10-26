@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { Router } from 'express';
 import { Follow, PendingSignup, Post, User } from '../models.js';
-import { addNotification, publicUser, serializePost } from '../store.js';
+import { addNotification, publicUser, serializePost, serializePosts } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { HttpError, notFound } from '../utils/httpError.js';
@@ -108,7 +108,7 @@ usersRouter.get(
     if (!target) throw notFound('User not found.');
     // Profiles are globally visible (Konnect)
     const posts = await Post.find({ user_id: req.params.id, is_taken_down: { $ne: true } }).sort({ created_at: -1 }).limit(Number(req.query.limit || 50));
-    res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
+    res.json(await serializePosts(posts, req.user.id));
   }),
 );
 

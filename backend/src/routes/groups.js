@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { Group, GroupMember, GroupRequest, Post, User, Conversation, Message } from '../models.js';
-import { addNotification, publicUser, serializeGroup, serializePost } from '../store.js';
+import { addNotification, publicUser, serializeGroup, serializePost, serializePosts } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { forbidden, notFound } from '../utils/httpError.js';
@@ -377,7 +377,7 @@ groupsRouter.get(
     }
 
     const posts = await Post.find({ group_id: req.params.id, is_taken_down: { $ne: true } }).sort({ created_at: -1 });
-    res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
+    res.json(await serializePosts(posts, req.user.id));
   }),
 );
 

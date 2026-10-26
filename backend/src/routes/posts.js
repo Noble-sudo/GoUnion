@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { Comment, Post, PostView, Group, GroupMember } from '../models.js';
-import { addNotification, serializeComment, serializePost } from '../store.js';
+import { addNotification, serializeComment, serializePost, serializePosts } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { HttpError, forbidden, notFound } from '../utils/httpError.js';
@@ -15,7 +15,7 @@ postsRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const posts = await Post.find(institutionScopedQuery(req.user, { is_taken_down: { $ne: true } })).sort({ created_at: -1 }).skip(Number(req.query.skip || 0)).limit(Number(req.query.limit || 50));
-    res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
+    res.json(await serializePosts(posts, req.user.id));
   }),
 );
 
@@ -41,7 +41,7 @@ postsRouter.get(
       query = institutionScopedQuery(req.user, baseQuery);
     }
     const posts = await Post.find(query).sort({ created_at: -1 }).skip(Number(req.query.skip || 0)).limit(Number(req.query.limit || 10));
-    res.json(await Promise.all(posts.map((post) => serializePost(post, req.user.id))));
+    res.json(await serializePosts(posts, req.user.id));
   }),
 );
 

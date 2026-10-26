@@ -13,6 +13,7 @@ import {
   PostView,
   StoryLike,
   StoryView,
+  StudentIdentity,
   User,
   PushSubscription,
 } from './models.js';
@@ -61,13 +62,42 @@ export const publicUser = async (userOrId, viewerId = null) => {
     Follow.countDocuments({ follower_id: plain.id }),
     Post.find({ user_id: plain.id }).select('likes').lean(),
     viewerId ? Follow.exists({ follower_id: viewerId, following_id: plain.id }) : null,
-    plain.active_identity_id ? (await import('./models.js')).StudentIdentity.findOne({ id: plain.active_identity_id }).lean() : Promise.resolve(null)
+    plain.active_identity_id ? StudentIdentity.findOne({ id: plain.active_identity_id }).lean() : Promise.resolve(null)
   ]);
+  const institutionId = pickInstitutionId(plain, activeIdentity);
+  const institution = await resolveInstitutionCached(institutionId);
+  return shapePublicUser(plain, {
+    followers,
+    following,
+    totalLikes: posts.reduce((sum, post) => sum + (post.likes?.length || 0), 0),
+    isFollowing,
+    activeIdentity,
+    institutionId,
+    institution,
+  }, viewerId);
+};
+
+// Institution names almost never change, so remember them for 10 minutes.
+const institutionCache = new Map();
+const INSTITUTION_TTL_MS = 10 * 60 * 1000;
+const resolveInstitutionCached = async (institutionId) => {
+  if (!institutionId) return null;
+  const hit = institutionCache.get(institutionId);
+  if (hit && Date.now() - hit.at < INSTITUTION_TTL_MS) return hit.value;
+  const value = await resolveInstitutionSelection({ institutionId });
+  institutionCache.set(institutionId, { value, at: Date.now() });
+  return value;
+};
+
+const pickInstitutionId = (plain, activeIdentity) => {
   const isAdminRole = ['admin', 'moderator'].includes(plain.role);
-  const institutionId = isAdminRole
+  return isAdminRole
     ? (plain.institution_id || activeIdentity?.institution_id || null)
     : (activeIdentity?.institution_id || plain.institution_id || null);
-  const institution = institutionId ? await resolveInstitutionSelection({ institutionId }) : null;
+};
+
+const shapePublicUser = (plain, ctx, viewerId) => {
+  const { followers, following, totalLikes, isFollowing, activeIdentity, institutionId, institution } = ctx;
   const profile = {
     ...(plain.profile || {}),
     university: institution?.name || plain.profile?.university || 'University Student',
@@ -79,7 +109,7 @@ export const publicUser = async (userOrId, viewerId = null) => {
     institution_name: institution?.name || null,
     university: institution?.name || profile.university,
     verification_status: activeIdentity?.status || 'UNVERIFIED',
-      rejection_reason: activeIdentity?.rejection_reason || null,
+    rejection_reason: activeIdentity?.rejection_reason || null,
     active_identity_id: plain.active_identity_id || null,
     username: plain.username,
     email: plain.email,
@@ -92,7 +122,7 @@ export const publicUser = async (userOrId, viewerId = null) => {
     profile,
     followers_count: followers,
     following_count: following,
-    total_likes: posts.reduce((sum, post) => sum + (post.likes?.length || 0), 0),
+    total_likes: totalLikes,
     is_following: Boolean(isFollowing),
     ...(viewerId === plain.id ? {
       settings: plain.settings || {},
@@ -104,6 +134,58 @@ export const publicUser = async (userOrId, viewerId = null) => {
       is_banned: plain.is_banned || false
     })
   };
+};
+
+const SYSTEM_IDS = new Set(['system', 'reconnected_admin']);
+const countMap = (rows) => new Map(rows.map((r) => [r._id, r.n]));
+
+// Same output as publicUser, but for many users in about 6 database round trips total.
+export const publicUsersByIds = async (ids, viewerId = null) => {
+  const result = new Map();
+  const unique = [...new Set((ids || []).filter(Boolean))];
+  const real = unique.filter((id) => !SYSTEM_IDS.has(id));
+  for (const id of unique) {
+    if (SYSTEM_IDS.has(id)) result.set(id, await publicUser(id, viewerId));
+  }
+  if (!real.length) return result;
+
+  const users = await User.find({ id: { $in: real } });
+  const plains = users.map((u) => toPlain(u));
+  const foundIds = plains.map((p) => p.id);
+  const identityIds = [...new Set(plains.map((p) => p.active_identity_id).filter(Boolean))];
+
+  const [followerRows, followingRows, likeRows, viewerFollows, identities] = await Promise.all([
+    Follow.aggregate([{ $match: { following_id: { $in: foundIds } } }, { $group: { _id: '$following_id', n: { $sum: 1 } } }]),
+    Follow.aggregate([{ $match: { follower_id: { $in: foundIds } } }, { $group: { _id: '$follower_id', n: { $sum: 1 } } }]),
+    Post.aggregate([
+      { $match: { user_id: { $in: foundIds } } },
+      { $group: { _id: '$user_id', n: { $sum: { $cond: [{ $isArray: '$likes' }, { $size: '$likes' }, 0] } } } },
+    ]),
+    viewerId ? Follow.find({ follower_id: viewerId, following_id: { $in: foundIds } }).select('following_id').lean() : Promise.resolve([]),
+    identityIds.length ? StudentIdentity.find({ id: { $in: identityIds } }).lean() : Promise.resolve([]),
+  ]);
+
+  const followers = countMap(followerRows);
+  const following = countMap(followingRows);
+  const likes = countMap(likeRows);
+  const followed = new Set(viewerFollows.map((f) => f.following_id));
+  const identityById = new Map(identities.map((i) => [i.id, i]));
+
+  for (const plain of plains) {
+    const activeIdentity = plain.active_identity_id ? (identityById.get(plain.active_identity_id) || null) : null;
+    const institutionId = pickInstitutionId(plain, activeIdentity);
+    const institution = await resolveInstitutionCached(institutionId);
+    result.set(plain.id, shapePublicUser(plain, {
+      followers: followers.get(plain.id) || 0,
+      following: following.get(plain.id) || 0,
+      totalLikes: likes.get(plain.id) || 0,
+      isFollowing: followed.has(plain.id),
+      activeIdentity,
+      institutionId,
+      institution,
+    }, viewerId));
+  }
+  return result;
 };
 
 export const serializeComment = async (commentOrDoc, viewerId = null) => {
@@ -163,6 +245,35 @@ export const serializePost = async (postOrDoc, viewerId = null) => {
     comments_count: commentsCount,
     views_count: viewsCount,
   };
+};
+
+// Same output as serializePost for a whole page of posts, using a handful of queries instead of ~9 per post.
+export const serializePosts = async (postsOrDocs, viewerId = null) => {
+  const list = postsOrDocs || [];
+  if (!list.length) return [];
+  try {
+    const posts = list.map((p) => toPlain(p)).filter(Boolean);
+    const postIds = posts.map((p) => p.id);
+    const [commentRows, viewRows, userMap] = await Promise.all([
+      Comment.aggregate([{ $match: { post_id: { $in: postIds } } }, { $group: { _id: '$post_id', n: { $sum: 1 } } }]),
+      PostView.aggregate([{ $match: { post_id: { $in: postIds } } }, { $group: { _id: '$post_id', n: { $sum: 1 } } }]),
+      publicUsersByIds(posts.map((p) => p.user_id), viewerId),
+    ]);
+    const comments = countMap(commentRows);
+    const views = countMap(viewRows);
+    return posts.map((post) => ({
+      ...post,
+      user: userMap.get(post.user_id) || null,
+      comments: [],
+      likes: (post.likes || []).map((userId) => ({ id: userId })),
+      likes_count: post.likes?.length || 0,
+      comments_count: comments.get(post.id) || 0,
+      views_count: views.get(post.id) || 0,
+    }));
+  } catch (err) {
+    console.error('serializePosts batch failed, using slow path:', err.message);
+    return Promise.all(list.map((post) => serializePost(post, viewerId)));
+  }
 };
 
 if (env.vapidPublicKey && env.vapidPrivateKey) {
