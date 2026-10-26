@@ -56,7 +56,11 @@ export const MobileNav = () => {
     const activeBgLightClass = "bg-primary/10";
 
     const renderNavItem = (item) => (
-        <NavLink key={item.path} to={item.path} onClick={() => {
+        <NavLink key={item.path} to={item.path} replace={location.pathname !== "/"} onClick={(e) => {
+            if (item.path === "/" && location.pathname !== "/") {
+                const idx = window.history.state?.idx ?? 0;
+                if (idx > 0) { e.preventDefault(); navigate(-idx); return; }
+            }
             if (location.pathname === "/" && item.path === "/") window.dispatchEvent(new Event("gounion-refresh-feed"));
             if (location.pathname === "/konnect" && item.path === "/konnect") window.dispatchEvent(new Event("gounion-refresh-goto"));
         }} className={({ isActive }) => `relative flex flex-col items-center justify-center h-full flex-1 transition-all duration-300 ${isActive ? activeTextClass : "text-white/40 hover:text-white/80"}`}>
@@ -123,6 +127,7 @@ export const MobileNav = () => {
                                         >
                                             <Link
                                                 to={item.path}
+                                                replace={location.pathname !== "/"}
                                                 onClick={(e) => {
                                                     if (item.label === "Invite") {
                                                         e.preventDefault();

@@ -7,6 +7,7 @@ import { RightSidebar } from "./components/layout/RightSidebar";
 import { TopNav } from "./components/layout/TopNav";
 import { MobileNav } from "./components/layout/MobileNav";
 import { PwaInstallBanner } from "./components/layout/PwaInstallBanner";
+import { BackToPulse } from "./components/layout/BackToPulse";
 import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
 import { Konnect } from "./pages/Konnect";
@@ -133,6 +134,7 @@ const App = () => {
         <ConfirmProvider>
           <BrowserRouter>
             <SocketProvider>
+              <BackToPulse />
               <PwaInstallBanner />
                 <AppRoutes />
             </SocketProvider>
