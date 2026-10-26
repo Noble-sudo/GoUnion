@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { Bell, Heart, MessageSquare, UserPlus, Users, AtSign, Eye } from 'lucide-react';
@@ -71,8 +71,13 @@ export const Notifications = () => {
             queryClient.invalidateQueries({ queryKey: ["notifications-unread"] });
         },
     });
-    // The effect to auto-mark read has been removed so notifications remain unread
-    // until the user specifically clicks on one.
+    // autoMarkRead: once the list has been on screen for a moment, everything counts as read.
+    const unreadShown = (notifications || []).filter((n) => !n.read && n.type !== 'new_message').length;
+    useEffect(() => {
+        if (!unreadShown) return undefined;
+        const timer = setTimeout(() => markReadMutation.mutate(), 1500);
+        return () => clearTimeout(timer);
+    }, [unreadShown]);
     return (_jsxs("div", { className: "max-w-3xl mx-auto w-full pb-24 pt-8", children: [_jsx("div", { className: "mb-4", children: _jsx(StatusCircles, {}) }), _jsxs("div", { className: "mb-8 relative p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 overflow-hidden border border-white/5 shadow-2xl flex items-center gap-4", children: [_jsx("div", { className: "w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10", children: _jsx(Bell, { size: 28, className: "text-white" }) }), _jsxs("div", { children: [_jsx("h1", { className: "text-2xl md:text-3xl font-black text-white tracking-tighter", children: "Notifications" }), _jsx("p", { className: "text-zinc-400 font-medium mt-1", children: "Activity across your network." })] })] }), isLoading ? (_jsx("div", { className: "space-y-4", children: [1, 2, 3].map((i) => (_jsx("div", { className: "h-24 bg-white/[0.02] border border-white/5 rounded-2xl animate-pulse" }, i))) })) : (() => {
                 const filteredNotifications = (notifications || []).filter((n) => n.type !== 'new_message');
                 const hasNotifications = filteredNotifications.length > 0;
