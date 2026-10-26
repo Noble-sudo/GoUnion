@@ -32,6 +32,55 @@ export const Dashboard = () => {
     return () => window.removeEventListener("gounion-refresh-feed", handleExternalRefresh);
   }, []);
 
+  // Back button on Pulse: scrolled down -> back goes to the top and refreshes; at the top -> back leaves.
+  useEffect(() => {
+    const flagged = () => !!((window.history.state || {}).__pulseGuard);
+    const prevRestore = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    let guardOn = flagged();
+    let ticking = false;
+    const scrollY = () => window.scrollY || document.documentElement.scrollTop || 0;
+    const check = () => {
+      ticking = false;
+      const s = window.history.state || {};
+      if (s.__overlay) return;
+      const y = scrollY();
+      if (y > 400 && !guardOn && !s.__pulseGuard) {
+        window.history.pushState(Object.assign({}, s, { __pulseGuard: true }), "");
+        guardOn = true;
+      } else if (y < 60 && guardOn && s.__pulseGuard) {
+        guardOn = false;
+        window.history.back();
+      }
+    };
+    const onScroll = () => {
+      if (!ticking) { ticking = true; window.requestAnimationFrame(check); }
+    };
+    const onPop = () => {
+      const s = window.history.state || {};
+      if (s.__pulseGuard || s.__overlay) return;
+      if (guardOn && window.location.pathname === "/") {
+        guardOn = false;
+        if (scrollY() < 60) {
+          window.history.back();
+        } else {
+          window.scrollTo(0, 0);
+          window.requestAnimationFrame(() => window.scrollTo(0, 0));
+          queryClient.resetQueries({ queryKey: ["feed"] });
+        }
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("popstate", onPop);
+    const t = setTimeout(check, 400);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("popstate", onPop);
+      window.history.scrollRestoration = prevRestore;
+    };
+  }, [queryClient]);
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, error } = useInfiniteQuery({
     queryKey: ["feed"],
     queryFn: ({ pageParam }) => api.posts.getFeed({ pageParam, type: 'media' }),
