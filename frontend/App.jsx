@@ -73,9 +73,6 @@ const PrivateRoute = ({ children, noLayout }) => {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
-  if ((!user?.institution_id || user?.verification_status === 'REJECTED') && !['admin', 'moderator'].includes(user?.role) && location.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace />;
-  }
 
   if (noLayout) return <>{children}</>;
   return <AppLayout>{children}</AppLayout>;
@@ -109,7 +106,7 @@ const AppRoutes = () => {
         <Route path="/" element={isAuthenticated ? <PrivateRoute><Dashboard /></PrivateRoute> : <Landing />} />
         
         {/* Onboarding doesn't use the standard layout to avoid distractions */}
-        <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Navigate to="/login" />} />
+        <Route path="/onboarding" element={<Navigate to="/" replace />} />
         
         <Route path="/groups" element={<PrivateRoute><Groups /></PrivateRoute>} />
         <Route path="/groups/:id" element={<PrivateRoute><GroupDetails /></PrivateRoute>} />

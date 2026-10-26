@@ -98,7 +98,7 @@ export const Login = () => {
       }
       const response = await api.auth.login({ email, password });
       login(response.user, response.access_token);
-      navigate(response.user?.institutionId ? "/" : "/onboarding");
+      navigate("/");
     } catch (error) {
       if (error.response?.status === 403 && error.response?.data?.is_suspended) {
         setSuspendedState(error.response.data);
