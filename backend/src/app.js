@@ -23,6 +23,7 @@ import { usersRouter } from './routes/users.js';
 import { institutionsRouter } from './routes/institutions.js';
 import { identitiesRouter } from './routes/identities.js';
 import { messagesRouter } from './routes/messages.js';
+import { shopsRouter } from './routes/shops.js';
 
 export const app = express();
 
@@ -93,6 +94,7 @@ apiRouter.use('/stories', storiesRouter);
 apiRouter.use('/media', mediaRouter);
 apiRouter.use('/mobile', mobileRouter);
 apiRouter.use('/messages', messagesRouter);
+apiRouter.use('/shops', shopsRouter);
 
 app.use('/api', apiRouter);
 
