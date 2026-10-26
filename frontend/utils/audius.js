@@ -96,6 +96,7 @@ export const playTrack = (id, url) => {
   const a = getAudio();
   if (current !== id) {
     current = id;
+    a.volume = 1;
     a.src = url || streamUrl(id);
   }
   emit();
@@ -104,6 +105,10 @@ export const playTrack = (id, url) => {
 
 export const pauseTrack = (id) => {
   if (audio && (!id || current === id)) audio.pause();
+};
+
+export const setTrackVolume = (v) => {
+  if (audio) audio.volume = Math.max(0, Math.min(1, v));
 };
 
 export const useTrackPlayer = (id, url) => {

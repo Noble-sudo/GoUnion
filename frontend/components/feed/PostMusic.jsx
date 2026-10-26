@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Music, Play, Pause } from "lucide-react";
-import { parseTrack, playTrack, pauseTrack, useTrackPlayer } from "../../utils/audius";
+import { parseTrack, playTrack, pauseTrack, setTrackVolume, useTrackPlayer } from "../../utils/audius";
 
 // Shows the song attached to a post and plays it while the post is on screen.
 export const PostMusic = ({ content, cardRef }) => {
@@ -8,6 +8,7 @@ export const PostMusic = ({ content, cardRef }) => {
   const id = track ? track.id : null;
   const { playing, toggle } = useTrackPlayer(id, track ? track.url : "");
   const userPaused = useRef(false);
+  const visible = useRef(false);
 
   // Video sound would clash with the song, so mute the post's video while the song plays.
   useEffect(() => {
@@ -15,8 +16,13 @@ export const PostMusic = ({ content, cardRef }) => {
     if (!card || !playing) return undefined;
     const vids = Array.prototype.slice.call(card.querySelectorAll("video"));
     const before = vids.map((v) => v.muted);
-    vids.forEach((v) => { v.muted = true; });
-    return () => { vids.forEach((v, i) => { v.muted = before[i]; }); };
+    const beforeVol = vids.map((v) => v.volume);
+    // A reel can carry a mix (video volume and song volume); other posts mute the video.
+    const mix = String(content || "").match(/\[Mix: original (\d+)%, added (\d+)%\]/);
+    const orig = mix ? Number(mix[1]) / 100 : 0;
+    setTrackVolume(mix ? Number(mix[2]) / 100 : 1);
+    vids.forEach((v) => { v.volume = orig; v.muted = orig === 0; });
+    return () => { vids.forEach((v, i) => { v.muted = before[i]; v.volume = beforeVol[i]; }); };
   }, [playing, cardRef]);
 
   // Start when mostly visible, stop when scrolled away.
@@ -25,6 +31,7 @@ export const PostMusic = ({ content, cardRef }) => {
     if (!id || !el) return undefined;
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
+        visible.current = e.isIntersecting && e.intersectionRatio >= 0.6;
         if (e.isIntersecting && e.intersectionRatio >= 0.6) {
           if (!userPaused.current) playTrack(id, track.url);
         } else {
@@ -35,6 +42,13 @@ export const PostMusic = ({ content, cardRef }) => {
     obs.observe(el);
     return () => { obs.disconnect(); pauseTrack(id); };
   }, [id, cardRef]);
+
+  useEffect(() => {
+    if (!id) return undefined;
+    const resume = () => { if (visible.current && !userPaused.current) playTrack(id, track.url); };
+    window.addEventListener("konnect-reel-closed", resume);
+    return () => window.removeEventListener("konnect-reel-closed", resume);
+  }, [id]);
 
   if (!track) return null;
   return (

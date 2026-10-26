@@ -1,3 +1,4 @@
+import { pauseTrack } from "../../utils/audius";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -57,6 +58,7 @@ const ReelViewer = ({ src, startTime, reel, onClose }) => {
             if (v.readyState >= 1) begin();
             else v.addEventListener("loadedmetadata", begin, { once: true });
         }
+        pauseTrack();
         // The phone's back button closes the viewer instead of leaving the page.
         window.history.pushState(Object.assign({}, window.history.state || {}, { reelOpen: true }), "");
         const onPop = () => close();
@@ -66,6 +68,7 @@ const ReelViewer = ({ src, startTime, reel, onClose }) => {
         return () => {
             window.removeEventListener("popstate", onPop);
             document.body.style.overflow = previousOverflow;
+            window.dispatchEvent(new Event("konnect-reel-closed"));
             if (window.history.state && window.history.state.reelOpen) window.history.back();
         };
     }, []);
