@@ -450,6 +450,23 @@ export const transformNotification = (notification) => {
 };
 export const api = {
       media: { upload: uploadFile },
+    shops: {
+        list: async ({ q = '', category = '' } = {}) => {
+            const params = new URLSearchParams();
+            if (q) params.set('q', q);
+            if (category) params.set('category', category);
+            const res = await apiClient.get('/shops?' + params.toString());
+            return res.data;
+        },
+        get: async (slug) => (await apiClient.get('/shops/' + encodeURIComponent(slug))).data,
+        mine: async () => (await apiClient.get('/shops/mine')).data,
+        create: async (data) => (await apiClient.post('/shops', data)).data,
+        update: async (data) => (await apiClient.patch('/shops/mine', data)).data,
+        addProduct: async (data) => (await apiClient.post('/shops/mine/products', data)).data,
+        updateProduct: async (id, data) => (await apiClient.patch('/shops/mine/products/' + id, data)).data,
+        deleteProduct: async (id) => (await apiClient.delete('/shops/mine/products/' + id)).data,
+        byOwner: async (username) => (await apiClient.get('/shops/by-owner/' + encodeURIComponent(username))).data,
+    },
     identities: {
         request: async (data) => {
             const res = await apiClient.post("/identities/request", data);

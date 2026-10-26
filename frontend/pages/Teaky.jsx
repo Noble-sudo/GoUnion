@@ -1,94 +1,107 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { Bell, CheckCircle2, PackageSearch, ShieldCheck, ShoppingBag, Sparkles } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Search, Store, Plus, ShoppingBag } from "lucide-react";
+import { api, getFullUrl } from "../services/api";
 import { useAuthStore } from "../store";
-
-const futureSignals = [
-  ["Student listings", "Campus-first buying, selling, and trading."],
-  ["Verified identity", "Marketplace trust connected to Konnect accounts."],
-  ["Local exchange", "Designed around students meeting where they already belong."],
-];
+import { CATEGORIES } from "../components/teaky/shopUtils";
 
 export const Teaky = () => {
   const { user } = useAuthStore();
-  const campusName = user?.university || "your institution";
+  const [text, setText] = useState("");
+  const [q, setQ] = useState("");
+  const [category, setCategory] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setQ(text.trim()), 350);
+    return () => clearTimeout(t);
+  }, [text]);
+
+  const { data: shops, status } = useQuery({
+    queryKey: ["shops", q, category],
+    queryFn: () => api.shops.list({ q, category }),
+  });
+  const { data: mine } = useQuery({ queryKey: ["my-shop"], queryFn: api.shops.mine, enabled: !!user });
 
   return (
-    <div className="min-h-[calc(100vh-64px)] px-1 pb-24 pt-4 md:min-h-screen md:px-0 md:pb-10">
-      <motion.section
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.42 }}
-        className="mx-auto grid w-full max-w-5xl gap-5 lg:grid-cols-[1.05fr_0.95fr]"
-      >
-        <div className="rc-surface-strong rounded-[2rem] p-6 sm:p-8">
-          <div className="mb-10 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[rgba(104,212,255,0.24)] bg-[var(--rc-teaky-soft)] text-[var(--rc-teaky)]">
-                <ShoppingBag size={23} />
-              </span>
-              <div>
-                <p className="rc-label">Konnect product</p>
-                <h1 className="mt-1 text-3xl font-black tracking-tight text-white">Teaky</h1>
-              </div>
-            </div>
-            <span className="rounded-full border border-[rgba(104,212,255,0.24)] bg-[var(--rc-teaky-soft)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--rc-teaky)]">
-              Coming soon
-            </span>
-          </div>
-
-          <p className="rc-label text-[var(--rc-teaky)]">Teaky for {campusName}</p>
-          <h2 className="mt-4 font-serif text-5xl leading-none text-white sm:text-6xl">Buy. Sell. Trade.</h2>
-          <p className="mt-6 max-w-xl text-base leading-8 text-white/58">
-            We are building a marketplace designed around students at {campusName}. Teaky is part of Konnect, but it has not launched yet.
-          </p>
-
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            {futureSignals.map(([title, body]) => (
-              <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                <CheckCircle2 className="mb-4 text-[var(--rc-teaky)]" size={18} />
-                <h3 className="text-sm font-black text-white">{title}</h3>
-                <p className="mt-2 text-xs leading-5 text-white/45">{body}</p>
-              </div>
-            ))}
-          </div>
+    <div className="w-full pb-24">
+      <div className="flex items-start justify-between gap-3 px-4 pt-4 md:px-0">
+        <div>
+          <h1 className="flex items-center gap-2 font-serif text-2xl font-bold tracking-tight text-white">
+            <ShoppingBag size={22} className="text-[var(--rc-teaky)]" /> Teaky
+          </h1>
+          <p className="mt-1 text-sm text-white/45">Shops run by students. Free to open.</p>
         </div>
+        <Link
+          to="/teaky/my-shop"
+          className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-bold text-black active:scale-95"
+        >
+          {mine ? <Store size={16} /> : <Plus size={16} />}
+          {mine ? "My shop" : "Open your shop"}
+        </Link>
+      </div>
 
-        <aside className="grid gap-5">
-          <div className="rc-surface rounded-[2rem] p-6">
-            <div className="flex items-center gap-3">
-              <PackageSearch className="text-[var(--rc-teaky)]" size={24} />
-              <h3 className="text-xl font-black text-white">Launch status</h3>
-            </div>
-            <div className="mt-6 space-y-3">
-              {["Products", "Sellers", "Checkout", "Orders"].map((item) => (
-                <div key={item} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.025] px-4 py-3">
-                  <span className="text-sm font-bold text-white/70">{item}</span>
-                  <span className="text-xs font-black uppercase tracking-widest text-white/30">Not live</span>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="px-4 pt-4 md:px-0">
+        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3">
+          <Search size={18} className="text-white/40" />
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Search shops and products"
+            className="h-11 w-full bg-transparent text-[16px] text-white placeholder:text-white/30 outline-none"
+          />
+        </div>
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+          {["All"].concat(CATEGORIES).map((c) => {
+            const active = (c === "All" && !category) || c === category;
+            return (
+              <button
+                key={c}
+                onClick={() => setCategory(c === "All" ? "" : c)}
+                className={"shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold " + (active ? "border-primary bg-primary/15 text-primary" : "border-white/10 text-white/50")}
+              >
+                {c}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-          <div className="rc-surface rounded-[2rem] p-6">
-            <ShieldCheck className="text-[var(--rc-warm)]" size={24} />
-            <h3 className="mt-5 text-xl font-black text-white">Built on Konnect identity</h3>
-            <p className="mt-3 text-sm leading-6 text-white/50">
-              The future marketplace will rely on the same account, campus, and trust layer students already use in Konnect at {campusName}.
-            </p>
-          </div>
+      <div className="mt-4 grid grid-cols-2 gap-px bg-white/5 md:gap-3 md:bg-transparent">
+        {status === "pending" &&
+          [1, 2, 3, 4].map((k) => <div key={k} className="aspect-[4/5] animate-pulse bg-white/[0.04] md:rounded-2xl" />)}
+        {status === "success" &&
+          shops.map((shop) => (
+            <Link key={shop.id} to={"/shop/" + shop.slug} className="block overflow-hidden bg-[#0a0a0c] md:rounded-2xl md:border md:border-white/10">
+              <div className="relative aspect-square bg-white/[0.04]">
+                {shop.previews && shop.previews[0] ? (
+                  <img src={getFullUrl(shop.previews[0])} alt="" className="h-full w-full object-cover" loading="lazy" />
+                ) : shop.logo ? (
+                  <img src={getFullUrl(shop.logo)} alt="" className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-white/20"><Store size={40} /></div>
+                )}
+              </div>
+              <div className="p-3">
+                <p className="truncate text-sm font-bold text-white">{shop.name}</p>
+                <p className="mt-0.5 truncate text-xs text-white/40">
+                  {shop.category} {"-"} {shop.product_count} {shop.product_count === 1 ? "item" : "items"}
+                </p>
+              </div>
+            </Link>
+          ))}
+      </div>
 
-          <div className="rc-surface rounded-[2rem] p-6">
-            <div className="flex items-center gap-3 text-white">
-              <Bell size={20} />
-              <Sparkles size={20} className="text-[var(--rc-teaky)]" />
-            </div>
-            <p className="mt-5 text-sm leading-6 text-white/48">
-              Notifications for Teaky launch are not wired yet. This page is the foundation for the product destination.
-            </p>
-          </div>
-        </aside>
-      </motion.section>
+      {status === "error" && <p className="px-4 py-10 text-center text-sm text-white/45">Could not load shops. Try again in a moment.</p>}
+      {status === "success" && shops.length === 0 && (
+        <div className="px-6 py-16 text-center">
+          <Store className="mx-auto mb-3 text-[var(--rc-teaky)]" size={36} />
+          <h2 className="text-lg font-black text-white">{q || category ? "No shops match that" : "No shops yet"}</h2>
+          <p className="mx-auto mt-2 max-w-xs text-sm text-white/45">
+            {q || category ? "Try a different word or category." : "Be the first to open a shop on Teaky. It takes a minute."}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

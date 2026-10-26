@@ -13,6 +13,8 @@ import { Landing } from "./pages/Landing";
 import { Konnect } from "./pages/Konnect";
 import { Takes } from "./pages/Takes";
 import { Teaky } from "./pages/Teaky";
+import { ShopPage } from "./pages/ShopPage";
+import { MyShop } from "./pages/MyShop";
 import { InstitutionFeed } from "./pages/InstitutionFeed";
 import { Login } from "./pages/Login";
 import { ForgotPassword } from "./pages/ForgotPassword";
@@ -46,7 +48,7 @@ const AppLayout = ({ children }) => {
   const location = useLocation();
   const isMessages = location.pathname === '/messages' || (location.pathname.startsWith('/groups/') && location.pathname !== '/groups');
   const isKonnect = location.pathname === '/konnect' || location.pathname.startsWith('/institutions/');
-  const isFeed = location.pathname === '/' || location.pathname === '/takes';
+  const isFeed = location.pathname === '/' || location.pathname === '/takes' || location.pathname.startsWith('/teaky') || location.pathname.startsWith('/shop/');
   
   return (
     <div className="flex min-h-screen bg-[var(--rc-bg)] text-white selection:bg-[var(--rc-go)] selection:text-black">
@@ -116,6 +118,8 @@ const AppRoutes = () => {
         <Route path="/takes" element={<PrivateRoute><Takes /></PrivateRoute>} />
         <Route path="/institutions/:id" element={<PrivateRoute><InstitutionFeed /></PrivateRoute>} />
         <Route path="/teaky" element={<PrivateRoute><Teaky /></PrivateRoute>} />
+        <Route path="/teaky/my-shop" element={<PrivateRoute><MyShop /></PrivateRoute>} />
+        <Route path="/shop/:slug" element={isAuthenticated ? <PrivateRoute><ShopPage /></PrivateRoute> : <ShopPage />} />
         <Route path="/sound/:soundName" element={<PrivateRoute><SoundFeed /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
