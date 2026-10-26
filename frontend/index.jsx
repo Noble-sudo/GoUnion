@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './global.css';
 import './utils/autoGrow.js';
+import './utils/uploadGuard.js';
 import App from './App';
 import { usePwaStore } from './store/pwaStore';
 // Connect to the inline script in index.html that caught the event
