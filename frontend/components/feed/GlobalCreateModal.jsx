@@ -1,8 +1,10 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Image as ImageIcon, Video, Layers } from "lucide-react";
 export const GlobalCreateModal = ({ isOpen, onClose, openCreateStatus, openCreateReel }) => {
+    useBackClose(isOpen, onClose);
     return (_jsx(AnimatePresence, { children: isOpen && (_jsxs("div", { className: "fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4", children: [_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, onClick: onClose, className: "absolute inset-0 bg-black/80 backdrop-blur-sm" }), _jsxs(motion.div, { initial: { y: "100%", opacity: 0 }, animate: { y: 0, opacity: 1 }, exit: { y: "100%", opacity: 0 }, transition: { type: "spring", damping: 25, stiffness: 300 }, className: "relative w-full max-w-md bg-[#111114] border border-white/10 rounded-[2.5rem] p-6 shadow-2xl", children: [_jsxs("div", { className: "flex items-center justify-between mb-6", children: [_jsx("h2", { className: "font-serif text-2xl text-white", children: "Create" }), _jsx("button", { onClick: onClose, className: "p-2 bg-white/5 rounded-full text-zinc-400 hover:text-white transition-colors", children: _jsx(X, { size: 20 }) })] }), _jsxs("div", { className: "grid grid-cols-1 gap-3", children: [_jsxs("button", { onClick: () => {
                                         onClose();
                                         openCreateStatus();

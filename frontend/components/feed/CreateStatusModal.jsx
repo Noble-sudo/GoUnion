@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import React, { useState, useRef } from "react";
 import { X, Image as ImageIcon, Video, Send, Camera, Smile, Keyboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,11 +9,13 @@ import { CameraModal } from "../chat/CameraModal";
 import EmojiPicker, { Theme } from "../ui/EmojiKeypad";
 
 export const CreateStatusModal = ({ isOpen, onClose, onSuccess }) => {
+  useBackClose(isOpen, onClose);
   const [content, setContent] = useState("");
   const handleEmojiClick = (emojiObj) => setContent(prev => prev + emojiObj.emoji);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  useBackClose(isEmojiPickerOpen, () => setIsEmojiPickerOpen(false));
   const [showCamera, setShowCamera] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef(null);

@@ -1,3 +1,4 @@
+import { useBackClose } from "../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -81,6 +82,9 @@ export const Messages = ({ embeddedChatId }) => {
     const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
     const [activeMessageMenu, setActiveMessageMenu] = useState(null);
     const [reactionMsgId, setReactionMsgId] = useState(null);
+    useBackClose(!isDesktop && !embeddedChatId && !!selectedChatId, () => { setSelectedChatId(null); setSearchParams({}, { replace: true }); });
+    useBackClose(isEmojiPickerOpen, () => setIsEmojiPickerOpen(false));
+    useBackClose(!!reactionMsgId, () => setReactionMsgId(null));
     const [replyToMsg, setReplyToMsg] = useState(null);
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [highlightedMsgId, setHighlightedMsgId] = useState(() => {

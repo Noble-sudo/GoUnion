@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -5,6 +6,7 @@ import { Copy, Check, X, Share2, Mail, MessageSquare } from "lucide-react";
 import { useToast } from "./Toast";
 
 export const InviteModal = ({ isOpen, onClose, username }) => {
+    useBackClose(isOpen, onClose);
     const { toast } = useToast();
     const [copied, setCopied] = useState(false);
     

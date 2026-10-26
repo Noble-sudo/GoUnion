@@ -1,9 +1,11 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Camera, X, RefreshCcw, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const CameraModal = ({ onCapture, onClose }) => {
+    useBackClose(true, onClose);
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
     const [stream, setStream] = useState(null);

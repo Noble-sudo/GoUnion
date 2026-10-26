@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import React, { useState, useRef } from "react";
 import { Camera, Image as ImageIcon, X, MapPin, Smile, Keyboard, Music } from "lucide-react";
 import { MusicPicker } from "./MusicPicker";
@@ -20,6 +21,8 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
   const [showCamera, setShowCamera] = useState(false);
   const [track, setTrack] = useState(null);
   const [showMusic, setShowMusic] = useState(false);
+  useBackClose(isEmojiPickerOpen, () => setIsEmojiPickerOpen(false));
+  useBackClose(showMusic, () => setShowMusic(false));
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const queryClient = useQueryClient();

@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useEffect, useState } from "react";
 import { useToast } from "../ui/Toast";
@@ -8,6 +9,7 @@ import { api } from "../../services/api";
 import { Avatar } from "../ui/Avatar";
 const isVideoStory = (url) => Boolean(url && /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(url));
 export const StoryViewer = ({ isOpen, onClose, stories, currentUser, }) => {
+    useBackClose(isOpen, onClose);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [storyOverrides, setStoryOverrides] = useState({});

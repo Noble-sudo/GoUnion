@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useRef, useEffect } from "react";
 import { Heart, MessageCircle, Share2, Bookmark, Flag, Trash2, MoreHorizontal, X, Music, Download, Eye, Shield } from "lucide-react";
@@ -18,6 +19,8 @@ export const PostCard = ({ post, defaultShowComments = false }) => {
     const { user: currentUser } = useAuthStore();
     const [showMenu, setShowMenu] = React.useState(false);
     const [isReporting, setIsReporting] = React.useState(false);
+    useBackClose(showMenu, () => setShowMenu(false));
+    useBackClose(isReporting, () => setIsReporting(false));
     const [reportReason, setReportReason] = React.useState("");
     const [isLoaded, setIsLoaded] = React.useState(false);
     

@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 ﻿import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ export const CommentSection = ({ postId, groupId, authorUsername, }) => {
     const [content, setContent] = useState("");
     const [replyTarget, setReplyTarget] = useState(null);
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+    useBackClose(isEmojiPickerOpen, () => setIsEmojiPickerOpen(false));
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const { toast } = useToast();

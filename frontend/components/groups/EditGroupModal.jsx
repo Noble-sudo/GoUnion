@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import React, { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,6 +8,7 @@ import { useToast } from "../ui/Toast";
 import { useConfirm } from "../ui/ConfirmProvider";
 
 export const EditGroupModal = ({ isOpen, onClose, group }) => {
+  useBackClose(isOpen, onClose);
   const [name, setName] = useState(group?.name || "");
   const [description, setDescription] = useState(group?.description || "");
   const [privacy, setPrivacy] = useState(group?.privacy || "public");

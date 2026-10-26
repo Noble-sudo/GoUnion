@@ -1,9 +1,11 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useEffect, useState, useRef } from 'react';
 import { ChevronLeft, Download, FileText, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const MediaModal = ({ isOpen, onClose, mediaUrl, mediaType, fileName }) => {
+    useBackClose(isOpen, onClose);
     const [loading, setLoading] = useState(true);
     const [blobUrl, setBlobUrl] = useState(null);
     const [loadError, setLoadError] = useState(false);

@@ -1,3 +1,4 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { useToast } from "../ui/Toast";
 export const CreateReel = ({ isOpen, onClose }) => {
+    useBackClose(isOpen, onClose);
     const [caption, setCaption] = useState("");
     const [videoText, setVideoText] = useState("");
     const [textPosition, setTextPosition] = useState({ x: 50, y: 45 });

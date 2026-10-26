@@ -1,9 +1,11 @@
+import { useBackClose } from "../../hooks/useBackClose";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera, Save, User, FileText, School, Plus } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
 export const EditProfileModal = ({ isOpen, onClose, onSave, initialData, isSaving = false, }) => {
+    useBackClose(isOpen, onClose);
     const [formData, setFormData] = useState({
         fullName: initialData?.fullName || "",
         bio: initialData?.bio || "",
