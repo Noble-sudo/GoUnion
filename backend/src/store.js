@@ -377,7 +377,7 @@ export const addNotification = async ({ user_id, sender_id, type, post_id = null
             payload
           );
         } catch (pushErr) {
-          if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+          if ([404, 410, 401, 403].includes(pushErr.statusCode)) {
             await PushSubscription.deleteOne({ endpoint: sub.endpoint });
           }
         }

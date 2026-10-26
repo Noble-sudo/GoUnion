@@ -46,7 +46,20 @@ export const registerWebPushNotifications = async ({ requestPermission = false }
   const { publicKey } = await api.notifications.getVapidPublicKey();
   if (!publicKey) return { status: "missing_vapid_key" };
 
-  const existingSubscription = await registration.pushManager.getSubscription();
+  let existingSubscription = await registration.pushManager.getSubscription();
+  if (existingSubscription) {
+    const current = existingSubscription.options && existingSubscription.options.applicationServerKey;
+    if (current) {
+      const bytes = new Uint8Array(current);
+      let bin = "";
+      for (let i = 0; i < bytes.length; i += 1) bin += String.fromCharCode(bytes[i]);
+      const same = window.btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") === publicKey.replace(/=+$/, "");
+      if (!same) {
+        await existingSubscription.unsubscribe();
+        existingSubscription = null;
+      }
+    }
+  }
   const subscription = existingSubscription || await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(publicKey),
