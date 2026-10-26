@@ -70,12 +70,25 @@ export const Dashboard = () => {
         }
       }
     };
+    // Browsers only keep an extra back step if it was added during a real tap, so also arm it on taps.
+    const onTap = () => {
+      const s = window.history.state || {};
+      if (s.__overlay || guardOn || s.__pulseGuard) return;
+      if (scrollY() > 400) {
+        window.history.pushState(Object.assign({}, s, { __pulseGuard: true }), "");
+        guardOn = true;
+      }
+    };
+    window.addEventListener("pointerup", onTap, true);
+    window.addEventListener("click", onTap, true);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("popstate", onPop);
     const t = setTimeout(check, 400);
     return () => {
       clearTimeout(t);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointerup", onTap, true);
+      window.removeEventListener("click", onTap, true);
       window.removeEventListener("popstate", onPop);
       window.history.scrollRestoration = prevRestore;
     };
