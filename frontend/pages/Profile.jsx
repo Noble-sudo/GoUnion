@@ -103,7 +103,16 @@ export const Profile = () => {
     }
   };
 
-  const TABS = ["posts", "connections", "about"];
+  const { data: following = [] } = useQuery({
+    queryKey: ["profile-following", user?.id],
+    queryFn: () => api.profiles.getFollowing(user?.id || ""),
+    enabled: !!user?.id,
+  });
+  const followerIds = new Set(followers.map((f) => String(f.id)));
+  const konnects = following.filter((f) => followerIds.has(String(f.id)));
+  const peopleList = activeTab === "following" ? following : activeTab === "konnects" ? konnects : followers;
+
+  const TABS = ["posts", "followers", "following", "konnects", "about"];
 
   if (isLoading) {
     return (
@@ -192,9 +201,9 @@ export const Profile = () => {
                     onMouseLeave={() => setIsHoveringConnection(false)}
                     className={`flex h-10 items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold transition-colors ${isFollowingProfile ? 'border border-white/10 bg-white/5 text-white hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20' : 'bg-white text-black hover:bg-white/90'}`}>
                     {isFollowingProfile ? (
-                      isHoveringConnection ? <>Disconnect</> : <>Connected</>
+                      isHoveringConnection ? <>Unfollow</> : <>Following</>
                     ) : (
-                      <><UserPlus size={16} /> Connect</>
+                      <><UserPlus size={16} /> Follow</>
                     )}
                   </button>
                 </>
@@ -206,8 +215,18 @@ export const Profile = () => {
                 {/* Stats */}
         <div className="flex items-center gap-6 mb-8">
           <div className="flex flex-col">
-            <span className="text-2xl font-black text-white">{user.followers || 0}</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Connections</span>
+            <span className="text-2xl font-black text-white">{followers.length || user.followers || 0}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Followers</span>
+          </div>
+          <div className="w-px h-10 bg-white/10" />
+          <div className="flex flex-col">
+            <span className="text-2xl font-black text-white">{following.length}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Following</span>
+          </div>
+          <div className="w-px h-10 bg-white/10" />
+          <div className="flex flex-col">
+            <span className="text-2xl font-black text-white">{konnects.length}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Konnects</span>
           </div>
           <div className="w-px h-10 bg-white/10" />
           <div className="flex flex-col">
@@ -280,9 +299,9 @@ export const Profile = () => {
           )}
 
           {/* CONNECTIONS */}
-          {activeTab === "connections" && (
+          {["followers", "following", "konnects"].includes(activeTab) && (
             <div className="grid gap-3 sm:grid-cols-2">
-              {followers.map(f => (
+              {peopleList.map(f => (
                 <Link key={f.id} to={`/profile/${f.username}`} className="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition hover:bg-white/[0.04]">
                   <img src={f.avatarUrl || `https://ui-avatars.com/api/?name=${f.fullName}&background=random`} alt="" className="h-10 w-10 rounded-full object-cover" />
                   <div className="flex-1 min-w-0">
@@ -291,8 +310,8 @@ export const Profile = () => {
                   </div>
                 </Link>
               ))}
-              {followers.length === 0 && (
-                <div className="col-span-full text-center py-12 text-white/40 text-sm">No connections yet.</div>
+              {peopleList.length === 0 && (
+                <div className="col-span-full text-center py-12 text-white/40 text-sm">Nobody here yet.</div>
               )}
             </div>
           )}
@@ -323,11 +342,11 @@ export const Profile = () => {
         {showDisconnectConfirm && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-sm rounded-3xl bg-[#111113] border border-white/10 p-6 shadow-2xl">
-              <h3 className="text-lg font-black text-white mb-2">Disconnect</h3>
-              <p className="text-sm text-zinc-400 mb-6">Are you sure you want to disconnect from @{user?.username}? You won't see their posts in your following feed.</p>
+              <h3 className="text-lg font-black text-white mb-2">Unfollow</h3>
+              <p className="text-sm text-zinc-400 mb-6">Are you sure you want to unfollow @{user?.username}? You won't see their posts in your following feed.</p>
               <div className="flex gap-3 justify-end">
                 <button onClick={() => setShowDisconnectConfirm(false)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:text-white hover:bg-white/5 transition-colors">Cancel</button>
-                <button onClick={() => { setShowDisconnectConfirm(false); toggleFollowMutation.mutate("unfollow"); }} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500/20 hover:bg-red-500/30 text-red-500 transition-colors">Disconnect</button>
+                <button onClick={() => { setShowDisconnectConfirm(false); toggleFollowMutation.mutate("unfollow"); }} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500/20 hover:bg-red-500/30 text-red-500 transition-colors">Unfollow</button>
               </div>
             </motion.div>
           </div>
