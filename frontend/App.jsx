@@ -53,7 +53,7 @@ const AppLayout = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-[var(--rc-bg)] text-white selection:bg-[var(--rc-go)] selection:text-black">
       <Sidebar />
-      <div className={`flex-1 pb-20 md:ml-[72px] lg:ml-[260px] md:pb-0 ${!isMessages && !isKonnect ? 'lg:mr-[300px]' : ''}`}>
+      <div className={`flex-1 min-w-0 pb-20 md:ml-[72px] lg:ml-[260px] md:pb-0 ${!isMessages && !isKonnect ? 'lg:mr-[300px]' : ''}`}>
         {!isKonnect && <TopNav />}
         <main className={isMessages || isKonnect ? "w-full" : isFeed ? "px-0 py-0 md:px-8 md:py-6 max-w-5xl mx-auto" : "px-4 py-6 md:px-8 max-w-5xl mx-auto"}>
           {children}
