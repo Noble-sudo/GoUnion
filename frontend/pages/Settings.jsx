@@ -212,26 +212,6 @@ export const Settings = () => {
                   <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Bio</label>
                   <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Tell people a little about yourself..." className="w-full bg-white/5 border border-white/5 rounded-xl p-3.5 text-sm text-white outline-none focus:border-primary/30 transition-all font-medium resize-none" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Institution</label>
-                  <div className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-3.5">
-                    <div>
-                      <p className="text-sm font-bold text-white">{user?.university || 'No campus selected'}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        {user?.verification_status === 'VERIFIED' ? (
-                          <span className="text-[10px] font-black text-blue-400 uppercase tracking-wider flex items-center gap-1"><Shield size={12} /> Verified</span>
-                        ) : user?.verification_status === 'LEGACY_UNVERIFIED' ? (
-                          <span className="text-[10px] font-black text-yellow-500 uppercase tracking-wider">Legacy (Unverified)</span>
-                        ) : (
-                          <span className="text-[10px] font-black text-white/40 uppercase tracking-wider">Unverified</span>
-                        )}
-                      </div>
-                    </div>
-                    <button type="button" onClick={() => navigate('/onboarding')} className="text-[11px] font-bold text-black bg-white px-3 py-1.5 rounded-lg hover:bg-white/90 transition-colors">
-                      Change Campus
-                    </button>
-                  </div>
-                </div>
               </SectionCard>
 
               {/* Save */}
@@ -298,7 +278,7 @@ export const Settings = () => {
                 enabled={getToggle('show_in_suggestions', true)}
                 onChange={(v) => setToggle('show_in_suggestions', v)}
                 label="Show in People Suggestions"
-                description="Appear in the 'People You May Know' section for other students."
+                description="Appear in the 'People You May Know' section for other people."
               />
             </SectionCard>
           </motion.div>
@@ -380,7 +360,7 @@ export const Settings = () => {
       default:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-            <NavItem icon={User} label="Account" description="Profile, username, bio, institution" onClick={() => setActiveTab('account')} />
+            <NavItem icon={User} label="Account" description="Profile, username and bio" onClick={() => setActiveTab('account')} />
             <NavItem icon={Shield} label="Privacy & Security" description="Visibility, read receipts, messaging" onClick={() => setActiveTab('privacy')} />
             <NavItem icon={Bell} label="Notifications" description="Push alerts, activity, messages" onClick={() => setActiveTab('notifications')} />
             <div className="pt-4" />

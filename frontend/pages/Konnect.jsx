@@ -9,7 +9,6 @@ import { useScrollDirection } from '../hooks/useScrollDirection';
 
 const TABS = [
   { id: 'feed', label: 'Global Feed', icon: Compass },
-  { id: 'campuses', label: 'Explore Campuses', icon: Building2 },
   { id: 'communities', label: 'Communities', icon: Users },
 ];
 
@@ -154,7 +153,7 @@ export const Konnect = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search across all campuses..."
+                placeholder="Search people, groups and posts..."
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-10 text-white placeholder:text-white/40 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm shadow-inner"
               />
               {searchQuery && (
@@ -217,7 +216,7 @@ export const Konnect = () => {
                 ) : (searchResults?.users?.length > 0 || searchResults?.groups?.length > 0 || searchResults?.institutions?.length > 0) ? (
                   <div className="space-y-8">
                     {/* Institutions (Campuses) */}
-                    {searchResults.institutions?.length > 0 && (
+                    {false && (
                       <div>
                         <h3 className="rc-label text-white/50 mb-3 px-1">Campuses</h3>
                         <div className="grid gap-3">
@@ -287,7 +286,7 @@ export const Konnect = () => {
                                   <h4 className="font-bold text-white truncate group-hover:text-cyan-400 transition-colors">{user.fullName || user.name}</h4>
                                   <p className="text-sm text-white/50 truncate">@{user.username}</p>
                                 </div>
-                                {user.institutionName && (
+                                {false && (
                                   <div className="hidden sm:block text-xs font-medium text-cyan-400/70 bg-cyan-400/10 px-3 py-1 rounded-full whitespace-nowrap">
                                     {user.institutionName}
                                   </div>
@@ -366,7 +365,7 @@ export const Konnect = () => {
                               <Compass className="w-10 h-10 text-cyan-400" />
                             </div>
                             <h3 className="text-2xl font-serif font-bold text-white mb-2">The network is quiet</h3>
-                            <p className="text-white/50 max-w-sm mx-auto">No global posts available yet. Be the first to share something across campuses!</p>
+                            <p className="text-white/50 max-w-sm mx-auto">No posts yet. Be the first to share something!</p>
                           </div>
                         )}
                       </>
@@ -460,7 +459,7 @@ export const Konnect = () => {
                     ) : (
                       <div className="text-center py-20 px-4">
                         <h3 className="text-xl font-bold text-white mb-2">No global communities</h3>
-                        <p className="text-white/50">Be the first to start a cross-campus circle.</p>
+                        <p className="text-white/50">Be the first to start a community.</p>
                       </div>
                     )}
                   </div>

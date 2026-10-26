@@ -5,21 +5,21 @@ import { Home, Compass, MessageSquare, Download, X, Smartphone, Bell, ChevronRig
 const TOUR_STEPS = [
   {
     title: "Welcome to Konnect.",
-    description: "Your digital campus is ready. Let's take a quick look around.",
+    description: "Welcome to Konnect. Let's take a quick look around.",
     icon: Zap,
     color: "text-yellow-400",
     bg: "bg-yellow-400/10",
   },
   {
     title: "The Pulse",
-    description: "Your campus feed. See what's happening, watch stories, and join the conversation in real-time.",
+    description: "Your feed. See what's happening, watch stories, and join the conversation in real-time.",
     icon: Home,
     color: "text-[var(--rc-go)]",
     bg: "bg-[var(--rc-go)]/10",
   },
   {
     title: "Konnect",
-    description: "Go beyond your campus. Discover students, communities, and conversations from other universities.",
+    description: "Discover people, communities and conversations from everywhere.",
     icon: Compass,
     color: "text-blue-400",
     bg: "bg-blue-400/10",

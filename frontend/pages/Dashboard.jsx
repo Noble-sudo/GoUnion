@@ -130,7 +130,7 @@ export const Dashboard = () => {
     { id: "trending", label: "Trending" }
   ];
 
-  const nameString = user?.fullName || user?.full_name || user?.name || user?.username || "Student";
+  const nameString = user?.fullName || user?.full_name || user?.name || user?.username || "Friend";
   const firstName = nameString.split(" ")[0];
   const hour = new Date().getHours();
   const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -144,7 +144,6 @@ export const Dashboard = () => {
   // Stable random per session/render
   const [greeting] = React.useState(() => messages[Math.floor(Math.random() * messages.length)]);
 
-  const universityName = user?.university || user?.institution?.name || "Campus";
 
   return (
     <div className="w-full px-0 pb-24 pt-0">
@@ -164,7 +163,7 @@ export const Dashboard = () => {
             <div>
               <h3 className="text-blue-400 font-bold text-lg mb-1">Identity Under Review</h3>
               <p className="text-blue-400/80 text-sm leading-relaxed">
-                Your campus network is temporarily locked. An admin is currently reviewing your identity documentation. Once approved, your campus feed, groups, and network will automatically unlock!
+                Your account is being reviewed by an admin. Once approved, your feed, groups and network will unlock automatically!
               </p>
             </div>
           </div>
@@ -218,7 +217,7 @@ export const Dashboard = () => {
             </div>
           ) : status === "error" ? (
             <div className="rounded-2xl border border-white/5 p-8 text-center bg-white/[0.02] text-white/50">
-              Unable to load Campus Feed. Please try again later.
+              Unable to load your feed. Please try again later.
               <br />
               <span className="mt-2 block text-xs text-red-400">{error?.message || String(error)}</span>
             </div>
@@ -230,23 +229,23 @@ export const Dashboard = () => {
                     <p className="rc-label">Your network is quiet</p>
                     <h2 className="mt-3 text-2xl font-black text-white">No posts from your connections</h2>
                     <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/42">
-                      When people you follow share posts or videos, they'll appear here. Connect with more students or check the 'For You' tab to discover what's happening on campus.
+                      When people you follow share posts or videos, they'll appear here. Follow more people to fill your feed.
                     </p>
                   </div>
                 ) : activeTab === "trending" ? (
                   <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] px-6 py-20 text-center">
                     <p className="rc-label">Nothing trending yet</p>
-                    <h2 className="mt-3 text-2xl font-black text-white">Campus is warming up</h2>
+                    <h2 className="mt-3 text-2xl font-black text-white">Your feed is warming up</h2>
                     <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/42">
                       The most liked and discussed posts will bubble up here. Start engaging with posts to help them trend!
                     </p>
                   </div>
                 ) : (
                   <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] px-6 py-20 text-center">
-                    <p className="rc-label">Campus Pulse is quiet</p>
+                    <p className="rc-label">Pulse is quiet</p>
                     <h2 className="mt-3 text-2xl font-black text-white">Be the first to drop something.</h2>
                     <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/42">
-                      Share a photo or video from around campus. Thoughts and writeups live in Takes.
+                      Share a photo or video. Thoughts and writeups live in Takes.
                     </p>
                   </div>
                 )
@@ -257,7 +256,7 @@ export const Dashboard = () => {
                 {isFetchingNextPage || hasNextPage ? (
                   <div className="h-4 w-full" />
                 ) : (
-                  <p className="text-sm font-medium text-white/30">You are caught up on Campus.</p>
+                  <p className="text-sm font-medium text-white/30">You are all caught up.</p>
                 )}
               </div>
             </div>

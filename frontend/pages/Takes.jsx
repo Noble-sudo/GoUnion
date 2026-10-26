@@ -58,7 +58,7 @@ export const Takes = () => {
     <div className="max-w-2xl mx-auto w-full pb-24">
       <div className="px-5 sm:px-0 pt-6 pb-4">
         <h1 className="font-serif text-2xl font-bold tracking-tight text-white">Takes</h1>
-        <p className="mt-1 text-sm text-white/45">Thoughts, questions and writeups from your campus.</p>
+        <p className="mt-1 text-sm text-white/45">Thoughts, questions and writeups from the community.</p>
       </div>
 
       <div className="mx-5 sm:mx-0 mb-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -122,7 +122,7 @@ export const Takes = () => {
             <PenLine className="mx-auto mb-4 h-8 w-8 text-primary" />
             <h2 className="text-2xl font-black text-white">No takes yet</h2>
             <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/45">
-              Be the first. Ask a question, share an opinion, or write something your campus should read.
+              Be the first. Ask a question, share an opinion, or write something people should read.
             </p>
           </div>
         ) : (

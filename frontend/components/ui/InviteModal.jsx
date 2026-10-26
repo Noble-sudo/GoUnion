@@ -14,7 +14,7 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
         ? window.location.origin 
         : 'https://reconencted.com';
     const inviteLink = `${baseUrl}/`;
-    const shareMessage = `Hey! Join me on Konnect, our campus community for groups, events and chats. Join here: ${inviteLink}`;
+    const shareMessage = `Hey! Join me on Konnect, the social app for groups, shops and chats. Join here: ${inviteLink}`;
     
     const handleCopy = async () => {
         try {
@@ -63,7 +63,7 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
                                     <Share2 size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="font-serif text-xl text-white">Invite Campus Friends</h3>
+                                    <h3 className="font-serif text-xl text-white">Invite Friends</h3>
                                     <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mt-0.5">Bring them into Konnect</p>
                                 </div>
                             </div>
@@ -74,7 +74,7 @@ export const InviteModal = ({ isOpen, onClose, username }) => {
                         
                         <div className="space-y-4 py-2">
                             <p className="text-sm text-zinc-400 leading-relaxed">
-                                Share this with students from your school so they can join you on Konnect.
+                                Share this with your friends so they can join you on Konnect.
                             </p>
                             
                             <div className="relative flex items-center bg-white/5 border border-white/5 rounded-2xl p-4 gap-3">

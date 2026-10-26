@@ -102,7 +102,7 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onFocus={() => { setIsFocused(true); setIsEmojiPickerOpen(false); }}
-            placeholder={mediaOnly ? "Share a photo or video from campus..." : "What's happening on campus?"}
+            placeholder={mediaOnly ? "Share a photo or video..." : "What's happening?"}
             className={`w-full resize-none border-none bg-transparent text-base text-white placeholder:text-white/30 focus:outline-none focus:ring-0 transition-all ${isFocused || content.trim() || selectedFile ? 'min-h-[80px]' : 'min-h-[40px]'}`}
           />
           

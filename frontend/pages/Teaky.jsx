@@ -30,7 +30,7 @@ export const Teaky = () => {
           <h1 className="flex items-center gap-2 font-serif text-2xl font-bold tracking-tight text-white">
             <ShoppingBag size={22} className="text-[var(--rc-teaky)]" /> Teaky
           </h1>
-          <p className="mt-1 text-sm text-white/45">Shops run by students. Free to open.</p>
+          <p className="mt-1 text-sm text-white/45">Open a shop for free, or browse what others are selling.</p>
         </div>
         <Link
           to="/teaky/my-shop"

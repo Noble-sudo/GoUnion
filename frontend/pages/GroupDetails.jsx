@@ -282,7 +282,7 @@ export const GroupDetails = () => {
               </span>
             </div>
             <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight">{group.name}</h1>
-            <p className="mt-1 text-white/40 text-sm">{group.university || user?.university}</p>
+            
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
@@ -409,17 +409,13 @@ export const GroupDetails = () => {
             <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 sm:p-8">
               <h3 className="font-serif text-xl font-bold text-white mb-4">About this Circle</h3>
               <p className="text-white/70 leading-relaxed text-sm whitespace-pre-wrap">
-                {group.description || "A community for students."}
+                {group.description || "A community for everyone."}
               </p>
               
               <div className="mt-8 pt-8 border-t border-white/5 grid gap-6 sm:grid-cols-2">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Created</p>
                   <p className="text-sm text-white">{new Date(group.created_at || Date.now()).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Campus</p>
-                  <p className="text-sm text-white">{group.university || user?.university}</p>
                 </div>
               </div>
             </div>

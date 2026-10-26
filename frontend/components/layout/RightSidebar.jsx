@@ -6,9 +6,6 @@ import { api } from '../../services/api';
 import { Link } from 'react-router-dom';
 import { FollowBackUrge } from '../feed/FollowBackUrge';
 import { Avatar } from '../ui/Avatar';
-import { CampusXPCard } from '../campus/CampusXPCard';
-import { CampusStreakCard } from '../campus/CampusStreakCard';
-import { CampusLeagueCard } from '../campus/CampusLeagueCard';
 
 export const RightSidebar = () => {
   const { data: suggestions } = useQuery({
@@ -57,7 +54,7 @@ export const RightSidebar = () => {
                     <Link to={`/profile/${u.username}`} className="text-sm font-medium text-white hover:underline truncate block">
                       {u.fullName}
                     </Link>
-                    <p className="text-xs text-white/50 truncate">{u.university}</p>
+                    <p className="text-xs text-white/50 truncate">@{u.username}</p>
                   </div>
                 </div>
                 <button className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors">
@@ -102,13 +99,6 @@ export const RightSidebar = () => {
         </div>
       </div>
 
-      {/* Campus Activity Cards */}
-      <div className="space-y-3 mb-8">
-        <p className="rc-label px-1">Campus Activity</p>
-        <CampusXPCard />
-        <CampusStreakCard />
-        <CampusLeagueCard />
-      </div>
 
       {/* Footer */}
       <div className="pt-6 border-t border-white/10">

@@ -125,8 +125,8 @@ export const Profile = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#030303] flex items-center justify-center flex-col">
-        <p className="text-white/50">Student not found.</p>
-        <Link to="/" className="mt-4 text-blue-400">Return to Campus</Link>
+        <p className="text-white/50">User not found.</p>
+        <Link to="/" className="mt-4 text-blue-400">Back to Pulse</Link>
       </div>
     );
   }
@@ -169,7 +169,7 @@ export const Profile = () => {
                 <div className="flex items-center gap-2">
     <h1 className="font-serif text-3xl font-bold text-white">{user.fullName}</h1>
     {user.verification_status === 'VERIFIED' && (
-      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 border border-primary/40 text-primary shadow-[0_0_15px_rgba(34,211,238,0.25)]" title="Verified Student">
+      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 border border-primary/40 text-primary shadow-[0_0_15px_rgba(34,211,238,0.25)]" title="Verified">
         <Check size={14} strokeWidth={3} />
       </span>
     )}
@@ -320,11 +320,8 @@ export const Profile = () => {
           {activeTab === "about" && (
             <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 space-y-6">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Campus Details</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Details</p>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-white/70">
-                    <MapPin size={16} className="text-blue-400" /> {user.university || "Not specified"}
-                  </div>
                   <div className="flex items-center gap-3 text-sm text-white/70">
                     <Calendar size={16} className="text-green-400" /> Joined {new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </div>

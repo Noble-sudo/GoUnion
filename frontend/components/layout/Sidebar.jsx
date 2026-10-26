@@ -105,8 +105,8 @@ export const Sidebar = () => {
           <div className="flex items-center gap-3">
             <Avatar src={user?.avatarUrl} label={user?.fullName} alt="Profile" className="h-11 w-11 rounded-xl border border-white/10 object-cover" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-white">{user?.fullName || "Student"}</p>
-              <p className="truncate text-xs text-white/42">{user?.university || "Choose your campus"}</p>
+              <p className="truncate text-sm font-bold text-white">{user?.fullName || "Member"}</p>
+              <p className="truncate text-xs text-white/42">{user?.username ? "@" + user.username : ""}</p>
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">

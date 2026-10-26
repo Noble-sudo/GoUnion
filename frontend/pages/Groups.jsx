@@ -59,7 +59,7 @@ export const Groups = () => {
         <div>
           <h1 className="font-serif text-4xl text-white md:text-5xl font-bold tracking-tight">Your Circles</h1>
           <p className="mt-3 text-sm leading-6 text-white/50 max-w-md">
-            Communities built around shared interests, identity, academic context or activities at {user?.university || "your campus"}.
+            Communities built around shared interests, identity and activities.
           </p>
         </div>
         <button onClick={() => setIsModalOpen(true)} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-black transition hover:bg-white/90 active:scale-95 shrink-0">
@@ -126,7 +126,7 @@ export const Groups = () => {
               <div className="col-span-full rounded-3xl border border-dashed border-white/10 bg-white/[0.025] py-24 text-center">
                 <UsersIcon className="mx-auto mb-4 text-white/25" size={28} />
                 <h3 className="font-bold text-white text-lg mb-2">No Circles yet.</h3>
-                <p className="text-white/45 text-sm mb-6 max-w-sm mx-auto">Find communities around your campus and interests.</p>
+                <p className="text-white/45 text-sm mb-6 max-w-sm mx-auto">Find communities around your interests.</p>
                 <button onClick={() => setActiveTab("discover")} className="inline-flex h-10 items-center justify-center rounded-xl bg-white/10 px-5 text-sm font-bold text-white transition hover:bg-white/20">
                   Explore Circles
                 </button>
@@ -239,7 +239,6 @@ export const Groups = () => {
 };
 
 const CircleCard = ({ group, user }) => {
-  const campusName = group.institutionName || group.university || user?.university || "Campus";
 
   return (
     <Link to={`/groups/${group.id}`} className="group relative overflow-hidden rounded-[2rem] border border-white/5 bg-white/[0.02] transition-colors hover:border-white/10 flex flex-col h-full">
@@ -251,8 +250,8 @@ const CircleCard = ({ group, user }) => {
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white/50 backdrop-blur-md">
-            <Building2 size={12} />
-            <span>Campus</span>
+            <UsersIcon size={12} />
+            <span>Group</span>
           </div>
           <div className="text-[10px] font-bold text-white/40 flex items-center gap-1">
             <UsersIcon size={12} /> {group.memberCount || 0}
@@ -260,10 +259,10 @@ const CircleCard = ({ group, user }) => {
         </div>
         <h3 className="font-serif text-xl font-bold text-white line-clamp-1">{group.name}</h3>
         <p className="mt-1 mb-4 flex-1 text-xs leading-relaxed text-white/40 line-clamp-2">
-          {group.description || "A community for students."}
+          {group.description || "A community for everyone."}
         </p>
         <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-          <span className="text-xs text-white/30 truncate">{campusName}</span>
+          <span className="text-xs text-white/30 truncate">Community</span>
           <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${group.isJoined ? 'bg-white/10 text-white' : 'bg-blue-500/10 text-blue-400'}`}>
             {group.isJoined ? 'Joined' : 'Open'}
           </span>
