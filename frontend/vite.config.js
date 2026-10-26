@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
                 manifest: {
                     name: 'Konnect',
                     short_name: 'Konnect',
-                    description: 'Your campus community: groups, events, chats and more.',
+                    description: 'Konnect: connect, share and shop. Chat, join communities and open your own shop.',
                     theme_color: '#030303',
                     background_color: '#030303',
                     display: 'standalone',

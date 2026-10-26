@@ -5,12 +5,7 @@ import { ArrowLeft, ArrowRight, AtSign, Building2, Check, Eye, EyeOff, Lock, Mai
 import { useAuthStore } from "../store";
 import { api, keepAlive } from "../services/api";
 
-const fallbackInstitutions = [
-  { id: "", name: "Godfrey Okoye University", location: "Enugu, Nigeria", type: "University" },
-  { id: "", name: "University of Nigeria", location: "Nsukka, Nigeria", type: "University" },
-  { id: "", name: "University of Lagos", location: "Lagos, Nigeria", type: "University" },
-  { id: "", name: "Covenant University", location: "Ota, Nigeria", type: "University" },
-];
+const fallbackInstitutions = [];
 
 const steps = ["Identity", "Account", "Security"];
 
@@ -132,18 +127,18 @@ export const Login = () => {
               <span className="text-sm font-black uppercase tracking-[0.18em]">Konnect</span>
             </Link>
             <div>
-              <p className="rc-label mb-5">Join your campus</p>
-              <h1 className="font-serif text-6xl leading-none">Your campus is waiting.</h1>
-              <p className="mt-6 max-w-md text-sm leading-7 text-white/52">Create your Konnect account and step into your campus community. Teaky, the campus marketplace, is open too.</p>
+              <p className="rc-label mb-5">Join Konnect</p>
+              <h1 className="font-serif text-6xl leading-none">Your people are waiting.</h1>
+              <p className="mt-6 max-w-md text-sm leading-7 text-white/52">Create your Konnect account to connect, share and shop. Teaky, the marketplace, is open too.</p>
             </div>
             <div className="grid gap-3">
               <div className="rounded-2xl border border-[rgba(34,211,238,0.2)] bg-[var(--rc-go-soft)] p-4">
                 <p className="text-xs font-black uppercase tracking-widest text-[var(--rc-go)]">Konnect</p>
-                <p className="mt-1 text-sm text-white/70">Campus community: Pulse, Takes, groups and chats.</p>
+                <p className="mt-1 text-sm text-white/70">Social: Pulse, Takes, groups and chats.</p>
               </div>
               <div className="rounded-2xl border border-[rgba(104,212,255,0.2)] bg-[var(--rc-teaky-soft)] p-4">
                 <p className="text-xs font-black uppercase tracking-widest text-[var(--rc-teaky)]">Teaky</p>
-                <p className="mt-1 text-sm text-white/70">Campus marketplace: open a free shop or browse.</p>
+                <p className="mt-1 text-sm text-white/70">Marketplace: open a free shop or browse.</p>
               </div>
             </div>
           </section>
@@ -159,7 +154,7 @@ export const Login = () => {
             <div className="mb-8">
               <p className="rc-label">{isSignup ? "Create your Konnect account" : "Welcome to Konnect"}</p>
               <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{isSignup ? steps[step] : "Sign in"}</h2>
-              <p className="mt-3 text-sm leading-6 text-white/45">{isSignup ? "A short setup before email verification." : "Continue into your campus ecosystem."}</p>
+              <p className="mt-3 text-sm leading-6 text-white/45">{isSignup ? "A short setup before email verification." : "Welcome back to Konnect."}</p>
             </div>
 
             {isSignup && (
@@ -232,7 +227,7 @@ export const Login = () => {
                   <label className="rc-label ml-1">{isSignup ? "Email address" : "Email or username"}</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35" size={18} />
-                    <input type="text" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@university.edu" className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.035] pl-12 pr-4 text-sm text-white outline-none transition focus:border-[var(--rc-go)]" />
+                    <input type="text" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.035] pl-12 pr-4 text-sm text-white outline-none transition focus:border-[var(--rc-go)]" />
                   </div>
                 </div>
               )}

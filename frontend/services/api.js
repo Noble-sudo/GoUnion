@@ -210,7 +210,7 @@ export const transformUser = (user) => {
         email: emailVal,
         avatarUrl: getFullUrl(profile.profile_picture || profile.profile_picture_url || user.profile_picture || user.profile_picture_url || user.avatarUrl || user.avatar_url || profile.avatarUrl || profile.avatar_url) ||
             `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-        university: profile.university || user.university || 'University Student',
+        university: profile.university || user.university || '',
         institution_id: user.institution_id || null,
         verification_status: user.verification_status || 'UNVERIFIED',
         department: profile.department || user.department || profile.course || user.course || '',
@@ -387,7 +387,7 @@ const transformProfile = (data, usernameFallback = '') => {
         email: userData.email || profile.email || '',
         avatarUrl: getFullUrl(profile.profile_picture || profile.profile_picture_url || userData.profile_picture || userData.profile_picture_url || userData.avatar_url) ||
             `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-        university: profile.university || userData.university || 'University Student',
+        university: profile.university || userData.university || '',
         department: profile.department || userData.department || profile.course || userData.course || '',
         level: profile.level || userData.level || '',
         followers: data.followers_count ?? userData.followers_count ?? data.followers ?? userData.followers ?? 0,

@@ -5,7 +5,7 @@ import { useAuthStore } from "../store";
 import { Users, ShoppingBag, Shield, Activity, Zap, Globe, Download, Smartphone, Apple, GraduationCap, Check } from "lucide-react";
 
 const SHOWCASE_IMAGES = [
-  { src: "/showcase-feed-full.png", label: "Pulse Feed", description: "Your campus timeline" },
+  { src: "/showcase-feed-full.png", label: "Pulse Feed", description: "Your feed" },
   { src: "/showcase-quick-full.png", label: "Quick Access", description: "Everything one tap away" },
   { src: "/showcase-chat-full.png", label: "Real-time Chat", description: "Instant messaging" },
   { src: "/showcase-notifications-full.png", label: "Notifications", description: "Stay in the loop" },
@@ -173,9 +173,9 @@ const ThreePhoneShowcase = () => {
 
 const APP_STEPS = [
   { icon: Download, title: "Download the app", body: "Start from your phone so Konnect feels native from the first tap." },
-  { icon: GraduationCap, title: "Choose your campus", body: "Find your university, polytechnic, or college and enter the right community." },
-  { icon: Shield, title: "Verify your identity", body: "Confirm you are a real student before you post, chat, or join groups." },
-  { icon: Users, title: "Meet your people", body: "Follow campus conversations, join circles, and message classmates naturally." },
+  { icon: GraduationCap, title: "Create your account", body: "Sign up with your email in a minute." },
+  { icon: Shield, title: "Set up your profile", body: "Add a photo and a short bio so people know who you are." },
+  { icon: Users, title: "Connect, share and shop", body: "Follow people, join communities, chat, and buy or sell on Teaky." },
 ];
 
 const AppFirstSection = ({ itemVariants, onInstall, isInstalled, showIosHint, onCloseIosHint }) => (
@@ -326,10 +326,10 @@ export const Landing = () => {
   };
 
   const features = [
-    { icon: Shield, title: "Verified Identity", desc: "Every user is a verified university student. No bots, no fakes — just real connections.", accent: "white" },
+    { icon: Shield, title: "Verified Identity", desc: "Real accounts and real conversations. No bots, no fakes — just real connections.", accent: "white" },
     { icon: Zap, title: "Real-time Messaging", desc: "Lightning-fast direct messages, voice notes, group chats, and typing indicators.", accent: "var(--rc-go)" },
-    { icon: Globe, title: "Konnect Network", desc: "Break outside your campus. Discover students and communities across other universities.", accent: "var(--rc-teaky)" },
-    { icon: Activity, title: "Live Campus Feed", desc: "Post drops, share moments, react, and see what's trending across your campus in real-time.", accent: "white" },
+    { icon: Globe, title: "Konnect Network", desc: "Discover people and communities from all over, in one growing network.", accent: "var(--rc-teaky)" },
+    { icon: Activity, title: "Live Feed", desc: "Post drops, share moments, react, and see what's trending in real-time.", accent: "white" },
   ];
 
   return (
@@ -386,24 +386,24 @@ export const Landing = () => {
           >
             <motion.div variants={itemVariants} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 mb-10 backdrop-blur-md">
               <span className="flex h-2 w-2 rounded-full bg-[var(--rc-go)] shadow-[0_0_12px_var(--rc-go)] animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Now Live for Nigerian Universities</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Now Live in Nigeria</span>
             </motion.div>
 
             <motion.h1 variants={itemVariants} className="font-serif text-5xl sm:text-6xl md:text-8xl lg:text-[7rem] font-black tracking-tight leading-[0.88] mb-8">
-              <span className="block text-white">Your campus.</span>
-              <span className="block text-white/70 mt-2">Your people.</span>
+              <span className="block text-white">Connect.</span>
+              <span className="block text-white/70 mt-2">Share.</span>
               <motion.span 
                 className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-[var(--rc-go)] via-white to-[var(--rc-teaky)]"
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                 style={{ backgroundSize: "200% 200%" }}
               >
-                Connected.
+                Shop.
               </motion.span>
             </motion.h1>
 
             <motion.p variants={itemVariants} className="mt-8 mb-12 text-lg md:text-xl text-white/40 max-w-2xl mx-auto font-medium leading-relaxed">
-              The exclusive digital ecosystem for verified university students. Communities, conversations, events, and everything campus - in one mobile app.
+              Your social space and your marketplace in one app. Share moments, chat with friends, join communities, and buy or sell with Teaky.
             </motion.p>
 
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -475,7 +475,7 @@ export const Landing = () => {
                 Two products.<br/>
                 <span className="text-white/60">One ecosystem.</span>
               </h2>
-              <p className="text-white/40 text-lg max-w-xl mx-auto">Switch seamlessly between your social campus and your marketplace.</p>
+              <p className="text-white/40 text-lg max-w-xl mx-auto">Switch seamlessly between your social world and your marketplace.</p>
             </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
@@ -498,7 +498,7 @@ export const Landing = () => {
                     </span>
                   </div>
                   <h3 className="text-3xl font-black text-white mb-3">Konnect</h3>
-                  <p className="text-white/45 text-base leading-relaxed max-w-sm">The vibrant social heart of your university. Communities, live chats, stories, and events — the digital quad where everyone meets.</p>
+                  <p className="text-white/45 text-base leading-relaxed max-w-sm">The social heart of Konnect. Communities, live chats, stories, and events — the place where everyone meets.</p>
                 </div>
               </motion.div>
 
@@ -521,7 +521,7 @@ export const Landing = () => {
                     </span>
                   </div>
                   <h3 className="text-3xl font-black text-white mb-3">Teaky</h3>
-                  <p className="text-white/45 text-base leading-relaxed max-w-sm">The dedicated campus marketplace. Buy, sell, and trade safely with verified students. Built right in.</p>
+                  <p className="text-white/45 text-base leading-relaxed max-w-sm">The marketplace built into Konnect. Open a free shop, or buy and sell with people you can trust.</p>
                 </div>
               </motion.div>
             </div>
@@ -539,7 +539,7 @@ export const Landing = () => {
               className="text-center mb-16"
             >
               <h2 className="font-serif text-3xl md:text-5xl font-black tracking-tight mb-4">Built different.</h2>
-              <p className="text-white/40 text-lg max-w-lg mx-auto">Every feature designed for the African campus experience.</p>
+              <p className="text-white/40 text-lg max-w-lg mx-auto">Every feature designed for how Africa connects and trades.</p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -584,7 +584,7 @@ export const Landing = () => {
             <h2 className="font-serif text-4xl md:text-6xl font-black tracking-tight mb-6">
               Ready to join?
             </h2>
-            <p className="text-white/40 text-lg mb-10 max-w-lg mx-auto">Your campus community is already here. Download Konnect, create your account, and join in minutes.</p>
+            <p className="text-white/40 text-lg mb-10 max-w-lg mx-auto">Your community is already here. Download Konnect, create your account, and join in minutes.</p>
             <Link to="/download" className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-white px-10 py-5 text-base font-black text-black shadow-[0_0_60px_rgba(255,255,255,0.1)] hover:shadow-[0_0_80px_rgba(255,255,255,0.2)] transition-all">
               Download Konnect
               <Download size={20} />

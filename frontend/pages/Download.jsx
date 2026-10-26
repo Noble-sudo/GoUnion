@@ -45,13 +45,13 @@ export const DownloadPage = () => {
       <main className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-16 pt-4 sm:px-8 lg:grid-cols-[1fr_0.9fr]">
         <section className="max-w-3xl">
           <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rc-label mb-5">
-            Konnect for Nigerian campuses
+            Social and marketplace in one app
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="max-w-4xl font-serif text-5xl leading-[0.98] text-white sm:text-7xl lg:text-8xl">
-            Your campus. Your people. Your connection.
+            Connect. Share. Shop.
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mt-7 max-w-2xl text-base leading-8 text-white/62 sm:text-lg">
-            Konnect brings your campus community, conversations, events and future marketplace into one platform built around student life.
+            Konnect brings your friends, communities, conversations and the Teaky marketplace into one app.
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -86,20 +86,6 @@ export const DownloadPage = () => {
             </div>
           )}
 
-          <div className="mt-10 max-w-xl rounded-[2rem] border border-white/10 bg-white/[0.035] p-4">
-            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white/42">
-              <Search size={18} />
-              <span className="text-sm">Search universities, polytechnics and colleges...</span>
-            </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {['Godfrey Okoye University', 'University of Lagos', 'Yaba College of Technology', 'Ahmadu Bello University'].map((school) => (
-                <div key={school} className="rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
-                  <p className="truncate text-sm font-bold text-white">{school}</p>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/30">Campus available</p>
-                </div>
-              ))}
-            </div>
-          </div>
         </section>
 
         <motion.section initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }} className="grid gap-4">
@@ -113,10 +99,10 @@ export const DownloadPage = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                [MessageCircle, 'Campus Pulse', 'Drops and conversations'],
+                [MessageCircle, 'Pulse', 'Drops and conversations'],
                 [Users, 'Circles', 'Communities that move'],
                 [Sparkles, 'Signals', 'Activity that matters'],
-                [Building2, 'Campus identity', 'Belong before you post'],
+                [Building2, 'Teaky shops', 'Buy and sell with trust'],
               ].map(([Icon, title, body]) => (
                 <div key={title} className="rounded-2xl border border-white/8 bg-white/[0.025] p-4">
                   <Icon className="mb-4 text-[var(--rc-go)]" size={21} />
@@ -126,7 +112,7 @@ export const DownloadPage = () => {
               ))}
             </div>
             <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black">
-              <img src="/screenshot-main.png" alt="Konnect Campus Pulse preview" className="h-72 w-full object-cover object-top opacity-90" />
+              <img src="/screenshot-main.png" alt="Konnect Pulse preview" className="h-72 w-full object-cover object-top opacity-90" />
             </div>
           </div>
 
@@ -134,14 +120,14 @@ export const DownloadPage = () => {
             <div className="rc-surface rounded-[2rem] p-5">
               <ShoppingBag className="text-[var(--rc-teaky)]" size={24} />
               <h3 className="mt-5 text-xl font-black text-white">Teaky</h3>
-              <p className="mt-2 text-sm leading-6 text-white/50">A campus marketplace scoped to your institution.</p>
+              <p className="mt-2 text-sm leading-6 text-white/50">A marketplace where anyone can open a free shop.</p>
               <span className="mt-5 inline-flex rounded-full border border-[rgba(104,212,255,0.24)] bg-[var(--rc-teaky-soft)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--rc-teaky)]">Live now</span>
             </div>
             <div className="rc-surface rounded-[2rem] p-5">
               <ShieldCheck className="text-[var(--rc-warm)]" size={24} />
-              <h3 className="mt-5 text-xl font-black text-white">School scoped</h3>
-              <p className="mt-2 text-sm leading-6 text-white/50">Students join the space for their own institution: Konnect and Teaky.</p>
-              <div className="mt-5 flex items-center gap-2 text-xs font-bold text-white/45"><CheckCircle2 size={14} /> Architecture ready</div>
+              <h3 className="mt-5 text-xl font-black text-white">Safe by design</h3>
+              <p className="mt-2 text-sm leading-6 text-white/50">Real accounts, verified email and reporting tools keep Konnect and Teaky safe.</p>
+              <div className="mt-5 flex items-center gap-2 text-xs font-bold text-white/45"><CheckCircle2 size={14} /> Live now</div>
             </div>
           </div>
         </motion.section>
