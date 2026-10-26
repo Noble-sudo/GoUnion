@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <meta name="description" content="Your campus community: groups, events, chats and more." />
     <meta name="theme-color" content="#030303" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
@@ -69,5 +69,11 @@
       observer.observe(document.getElementById('root'), { childList: true });
     </script>
     <script type="module" src="/index.jsx"></script>
-  </body>
+    <script>
+    // Block pinch-zoom on iOS and double-tap zoom everywhere so the app feels native.
+    document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+    document.addEventListener("gesturechange", function (e) { e.preventDefault(); });
+    document.addEventListener("touchmove", function (e) { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  </script>
+</body>
 </html>

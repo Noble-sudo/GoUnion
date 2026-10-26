@@ -216,3 +216,22 @@
 .post-media-flush .rounded-3xl {
   border-radius: 0 !important;
 }
+
+/* App feel: no zoom gestures, no tap flash, no accidental text selection on controls */
+html,
+body {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-x: none;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+nav,
+img,
+video {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
