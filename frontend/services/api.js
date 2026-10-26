@@ -326,6 +326,7 @@ export const transformMessage = (m) => {
         sender: m.sender ? transformUser(m.sender) : null,
         seenByUsers: m.seen_by_users ? m.seen_by_users.map(s => ({ user: transformUser(s.user), seenAt: s.seen_at })) : [],
         replyToId: m.reply_to_id || m.replyToId || null,
+        reactions: (m.reactions || []).map((r) => ({ user_id: r.user_id || r.userId, userId: r.user_id || r.userId, emoji: r.emoji })),
         createdAt: createdAt.toISOString(),
         timestamp: createdAt.toLocaleTimeString([], {
             hour: '2-digit',
@@ -1056,6 +1057,10 @@ export const api = {
         unmuteConversation: async (conversationId) => {
             const res = await apiClient.post(`/conversations/${conversationId}/unmute`);
             return res.data;
+        },
+        reactToMessage: async (conversationId, messageId, emoji) => {
+            const res = await apiClient.post('/conversations/' + conversationId + '/messages/' + messageId + '/react', { emoji });
+            return transformMessage(res.data);
         },
         deleteMessage: async (messageId) => {
             const res = await apiClient.delete(`/messages/${messageId}`);
