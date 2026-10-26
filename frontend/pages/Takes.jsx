@@ -61,7 +61,7 @@ export const Takes = () => {
         <p className="mt-1 text-sm text-white/45">Thoughts, questions and writeups from your campus.</p>
       </div>
 
-      <div className="mx-5 sm:mx-0 mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="mx-5 sm:mx-0 mb-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
         <div className="flex gap-3">
           <img
             src={avatar}
@@ -97,7 +97,7 @@ export const Takes = () => {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div>
         {status === "pending" ? (
           <div className="space-y-6">
             {[1, 2, 3].map((key) => (

@@ -211,3 +211,8 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* Post media sits edge to edge with square corners */
+.post-media-flush .rounded-3xl {
+  border-radius: 0 !important;
+}

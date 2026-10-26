@@ -110,7 +110,7 @@ export const Dashboard = () => {
         <FollowBackUrge className="mt-4 block lg:hidden mx-5" />
 
         {/* Tab System */}
-        <div className="px-5 sm:px-0 mb-6 mt-4 md:mt-8">
+        <div className="px-5 sm:px-0 mb-3 mt-2 md:mt-4">
           <div className="flex items-center justify-between sm:justify-start sm:gap-1 border-b border-white/10 pb-px">
             {TABS.map(tab => (
               <button 
@@ -130,11 +130,11 @@ export const Dashboard = () => {
         
 
         <StatusCircles />
-        <div className="px-5 sm:px-0 mb-6">
+        <div className="px-5 sm:px-0 mb-3">
           <CreatePost mediaOnly />
         </div>
 
-        <div className="w-full space-y-6 sm:px-0 mt-6">
+        <div className="w-full sm:px-0 mt-2">
           {status === "pending" ? (
             <div className="space-y-6">
               {[1, 2, 3, 4, 5].map((key) => (
@@ -161,7 +161,7 @@ export const Dashboard = () => {
               <span className="mt-2 block text-xs text-red-400">{error?.message || String(error)}</span>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div>
               {posts.length === 0 ? (
                 activeTab === "following" ? (
                   <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] px-6 py-20 text-center">
