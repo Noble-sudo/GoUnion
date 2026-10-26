@@ -1,5 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { useRef, useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Maximize2, Minimize2, X, Volume2, VolumeX } from "lucide-react";
 // ─── Helpers ──────────────────────────────────────────────
@@ -27,7 +28,115 @@ export const ImageViewer = ({ src, alt = "Post image", onLoad }) => {
                             onLoad?.();
                         }, className: `w-full object-cover max-h-[540px] transition-all duration-700 ${loaded ? "opacity-100 scale-100" : "opacity-0 scale-105 absolute inset-0"} group-hover/img:scale-[1.02]` }), loaded && (_jsx("div", { className: "absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" })), loaded && (_jsx(motion.div, { initial: { opacity: 0, scale: 0.8 }, whileHover: { scale: 1.05 }, className: "absolute top-3 right-3 opacity-0 group-hover/img:opacity-100 transition-all duration-300", children: _jsxs("div", { className: "bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl px-3 py-1.5 flex items-center gap-1.5", children: [_jsx(Maximize2, { size: 12, className: "text-blue-400" }), _jsx("span", { className: "text-[10px] font-black text-white uppercase tracking-widest", children: "Expand" })] }) })), _jsx("div", { className: "absolute inset-0 opacity-0 group-hover/img:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl", style: { boxShadow: "inset 0 0 60px rgba(59,130,246,0.05)" } })] }), _jsx(AnimatePresence, { children: lightbox && (_jsxs(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.25 }, className: "fixed inset-0 z-[9999] flex items-center justify-center p-4", style: { background: "rgba(0,0,0,0.96)", backdropFilter: "blur(24px)" }, onClick: () => setLightbox(false), children: [_jsx("div", { className: "absolute inset-0 pointer-events-none", style: { background: "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.06) 0%, transparent 70%)" } }), _jsx(motion.img, { initial: { scale: 0.88, opacity: 0, y: 12 }, animate: { scale: 1, opacity: 1, y: 0 }, exit: { scale: 0.88, opacity: 0, y: 12 }, transition: { type: "spring", damping: 26, stiffness: 300 }, src: src, alt: alt, className: "max-w-full max-h-[90vh] object-contain rounded-3xl shadow-2xl", style: { boxShadow: "0 40px 100px rgba(0,0,0,0.8), 0 0 60px rgba(59,130,246,0.08)" }, onClick: (e) => e.stopPropagation() }), _jsx(motion.button, { initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 }, transition: { delay: 0.1 }, onClick: () => setLightbox(false), className: "absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-2xl border border-white/10 text-white/70 hover:text-white hover:border-white/20 hover:bg-white/5 transition-all backdrop-blur-xl", children: _jsx(X, { size: 18 }) })] })) })] }));
 };
-export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover, maxHeight, watermark = "Konnect" }) => {
+// Fullscreen viewer: tap a feed video to watch it like a reel.
+const ReelViewer = ({ src, startTime, reel, onClose }) => {
+    const ref = useRef(null);
+    const touchY = useRef(null);
+    const closing = useRef(false);
+    const [muted, setMuted] = useState(false);
+    const [paused, setPaused] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    const close = () => {
+        if (closing.current) return;
+        closing.current = true;
+        onClose(ref.current ? ref.current.currentTime : 0);
+    };
+
+    useEffect(() => {
+        const v = ref.current;
+        if (v) {
+            const begin = () => {
+                try { v.currentTime = startTime || 0; } catch (e) { /* ignore */ }
+                v.play().catch(() => {
+                    v.muted = true;
+                    setMuted(true);
+                    v.play().catch(() => { });
+                });
+            };
+            if (v.readyState >= 1) begin();
+            else v.addEventListener("loadedmetadata", begin, { once: true });
+        }
+        // The phone's back button closes the viewer instead of leaving the page.
+        window.history.pushState(Object.assign({}, window.history.state || {}, { reelOpen: true }), "");
+        const onPop = () => close();
+        window.addEventListener("popstate", onPop);
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            window.removeEventListener("popstate", onPop);
+            document.body.style.overflow = previousOverflow;
+            if (window.history.state && window.history.state.reelOpen) window.history.back();
+        };
+    }, []);
+
+    const toggle = () => {
+        const v = ref.current;
+        if (!v) return;
+        if (v.paused) { v.play().catch(() => { }); setPaused(false); }
+        else { v.pause(); setPaused(true); }
+    };
+
+    const info = reel || {};
+    return createPortal(
+        <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black select-none"
+            onClick={(e) => { e.stopPropagation(); toggle(); }}
+            onTouchStart={(e) => { touchY.current = e.touches[0].clientY; }}
+            onTouchEnd={(e) => {
+                const y0 = touchY.current;
+                touchY.current = null;
+                if (y0 == null) return;
+                if (e.changedTouches[0].clientY - y0 > 120) close();
+            }}
+        >
+            <video
+                ref={ref}
+                src={src}
+                loop
+                playsInline
+                muted={muted}
+                className="h-full w-full object-contain"
+                onTimeUpdate={(e) => {
+                    const v = e.currentTarget;
+                    if (v.duration) setProgress((v.currentTime / v.duration) * 100);
+                }}
+            />
+            {paused && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-black/50">
+                        <Play size={34} className="ml-1 fill-white text-white" />
+                    </div>
+                </div>
+            )}
+            <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
+                <button onClick={(e) => { e.stopPropagation(); close(); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white" aria-label="Close video">
+                    <X size={22} />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); setMuted(!muted); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white" aria-label="Sound">
+                    {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                </button>
+            </div>
+            {(info.author || info.caption) && (
+                <div className="pointer-events-none absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-4 pb-6 pt-16" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)" }}>
+                    {info.author && (
+                        <div className="flex items-center gap-2">
+                            {info.avatar ? <img src={info.avatar} alt="" className="h-8 w-8 rounded-full object-cover" /> : null}
+                            <span className="text-sm font-black text-white">{info.author}</span>
+                        </div>
+                    )}
+                    {info.caption && <p className="mt-2 line-clamp-3 text-sm leading-5 text-white/90">{info.caption}</p>}
+                </div>
+            )}
+            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
+                <div className="h-full bg-white" style={{ width: progress + "%" }} />
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover, maxHeight, reel, watermark = "Konnect" }) => {
     const videoRef = useRef(null);
     const containerRef = useRef(null);
     const progressRef = useRef(null);
@@ -44,6 +153,8 @@ export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover,
     const [showVolume, setShowVolume] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [tapIcon, setTapIcon] = useState(null);
+    const [reelOpen, setReelOpen] = useState(false);
+    const reelStart = useRef(0);
     const tapTimer = useRef(null);
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
     const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0;
@@ -170,6 +281,13 @@ export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover,
     useEffect(() => () => { if (tapTimer.current)
         clearTimeout(tapTimer.current); }, []);
     return (_jsxs("div", { ref: containerRef, className: "relative overflow-hidden rounded-3xl select-none w-full", style: { background: "#000", maxHeight: maxHeight || undefined }, onClick: (e) => {
+            if (reel && videoRef.current) {
+                reelStart.current = videoRef.current.currentTime;
+                videoRef.current.pause();
+                setPlaying(false);
+                setReelOpen(true);
+                return;
+            }
             const v = videoRef.current;
             if (!v)
                 return;
@@ -182,7 +300,14 @@ export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover,
                 setPlaying(false);
                 flashTapIcon('pause');
             }
-        }, children: [_jsx("video", { ref: videoRef, src: src, className: `w-full h-full ${objectCover !== false ? 'object-cover' : 'object-contain'}`, muted: muted, playsInline: true, preload: "auto", onTimeUpdate: () => {
+        }, children: [reelOpen && _jsx(ReelViewer, { src: src, startTime: reelStart.current, reel: reel, onClose: (t) => {
+                    setReelOpen(false);
+                    const v = videoRef.current;
+                    if (v) {
+                        try { v.currentTime = t; } catch (e) { }
+                        v.play().then(() => setPlaying(true)).catch(() => { });
+                    }
+                } }), _jsx("video", { ref: videoRef, src: src, className: `w-full h-full ${objectCover !== false ? 'object-cover' : 'object-contain'}`, muted: muted, playsInline: true, preload: "auto", onTimeUpdate: () => {
                     const v = videoRef.current;
                     if (!v)
                         return;
@@ -210,4 +335,4 @@ export const VideoPlayer = ({ src, onLoadedData, autoPlayOnVisible, objectCover,
                                             background: "linear-gradient(90deg, #3b82f6, #60a5fa)"
                                         } }), _jsx("div", { className: "absolute top-1/2 -translate-y-1/2 -translate-x-1/2", style: { left: `${progress}%` }, children: _jsx("div", { className: "w-4 h-4 rounded-full bg-white", style: { boxShadow: "0 0 10px rgba(59,130,246,0.8), 0 2px 6px rgba(0,0,0,0.5)" } }) })] }) }), _jsxs("div", { className: "flex items-center gap-1 mt-2", children: [_jsx("div", { className: "flex-1 flex justify-center" }), _jsx("button", { onClick: toggleMute, className: "w-8 h-8 flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all", children: muted ? _jsx(VolumeX, { size: 15 }) : _jsx(Volume2, { size: 15 }) }), _jsx("button", { onClick: toggleFullscreen, className: "w-8 h-8 flex items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all", children: fullscreen ? _jsx(Minimize2, { size: 15 }) : _jsx(Maximize2, { size: 15 }) })] })] })) })] }));
 };
-export const MediaPlayer = ({ url, mediaType, alt, onLoad, onLoadedData, autoPlayOnVisible, objectCover, maxHeight }) => (mediaType === "video" || isVideoUrl(url)) ? _jsx(VideoPlayer, { src: url, onLoadedData: onLoadedData, autoPlayOnVisible: autoPlayOnVisible, objectCover: objectCover, maxHeight: maxHeight }) : _jsx(ImageViewer, { src: url, alt: alt, onLoad: onLoad });
+export const MediaPlayer = ({ url, mediaType, alt, onLoad, onLoadedData, autoPlayOnVisible, objectCover, maxHeight, reel }) => (mediaType === "video" || isVideoUrl(url)) ? _jsx(VideoPlayer, { src: url, reel: reel, onLoadedData: onLoadedData, autoPlayOnVisible: autoPlayOnVisible, objectCover: objectCover, maxHeight: maxHeight }) : _jsx(ImageViewer, { src: url, alt: alt, onLoad: onLoad });
