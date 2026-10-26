@@ -517,7 +517,7 @@ export const Landing = () => {
                       <ShoppingBag size={28} className="text-[var(--rc-teaky)]" />
                     </div>
                     <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3.5 py-1 text-[10px] font-black uppercase tracking-widest text-white/40">
-                      Coming Soon
+                      Live now
                     </span>
                   </div>
                   <h3 className="text-3xl font-black text-white mb-3">Teaky</h3>

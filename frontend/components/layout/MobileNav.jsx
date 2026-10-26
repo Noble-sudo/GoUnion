@@ -145,7 +145,7 @@ export const MobileNav = () => {
                                                         {item.badge > 99 ? '99+' : item.badge}
                                                     </span>
                                                 )}
-                                                {item.label === "Teaky" && (
+                                                {false && (
                                                     <span className="absolute -top-3 bg-[var(--rc-teaky)] text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(104,212,255,0.35)] whitespace-nowrap z-10 border border-black">
                                                         Coming Soon
                                                     </span>

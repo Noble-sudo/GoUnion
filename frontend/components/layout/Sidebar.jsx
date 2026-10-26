@@ -84,7 +84,6 @@ export const Sidebar = () => {
             <ShoppingBag className={`h-5 w-5 ${location.pathname === '/teaky' ? 'text-[var(--rc-teaky)]' : ''}`} />
             <div className="flex-1 min-w-0 flex items-center justify-between">
               <span className="font-bold">Teaky</span>
-              <span className="rounded-full border border-[rgba(104,212,255,0.24)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-[var(--rc-teaky)]">Soon</span>
             </div>
           </NavLink>
         </div>

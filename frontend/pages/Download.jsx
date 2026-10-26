@@ -135,12 +135,12 @@ export const DownloadPage = () => {
               <ShoppingBag className="text-[var(--rc-teaky)]" size={24} />
               <h3 className="mt-5 text-xl font-black text-white">Teaky</h3>
               <p className="mt-2 text-sm leading-6 text-white/50">A campus marketplace scoped to your institution.</p>
-              <span className="mt-5 inline-flex rounded-full border border-[rgba(104,212,255,0.24)] bg-[var(--rc-teaky-soft)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--rc-teaky)]">Coming soon</span>
+              <span className="mt-5 inline-flex rounded-full border border-[rgba(104,212,255,0.24)] bg-[var(--rc-teaky-soft)] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--rc-teaky)]">Live now</span>
             </div>
             <div className="rc-surface rounded-[2rem] p-5">
               <ShieldCheck className="text-[var(--rc-warm)]" size={24} />
               <h3 className="mt-5 text-xl font-black text-white">School scoped</h3>
-              <p className="mt-2 text-sm leading-6 text-white/50">Students join the space for their own institution: Konnect today, Teaky soon.</p>
+              <p className="mt-2 text-sm leading-6 text-white/50">Students join the space for their own institution: Konnect and Teaky.</p>
               <div className="mt-5 flex items-center gap-2 text-xs font-bold text-white/45"><CheckCircle2 size={14} /> Architecture ready</div>
             </div>
           </div>

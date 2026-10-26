@@ -134,7 +134,7 @@ export const Login = () => {
             <div>
               <p className="rc-label mb-5">Join your campus</p>
               <h1 className="font-serif text-6xl leading-none">Your campus is waiting.</h1>
-              <p className="mt-6 max-w-md text-sm leading-7 text-white/52">Create your Konnect account and step into your campus community. Teaky, the marketplace, is coming soon.</p>
+              <p className="mt-6 max-w-md text-sm leading-7 text-white/52">Create your Konnect account and step into your campus community. Teaky, the campus marketplace, is open too.</p>
             </div>
             <div className="grid gap-3">
               <div className="rounded-2xl border border-[rgba(34,211,238,0.2)] bg-[var(--rc-go-soft)] p-4">
@@ -143,7 +143,7 @@ export const Login = () => {
               </div>
               <div className="rounded-2xl border border-[rgba(104,212,255,0.2)] bg-[var(--rc-teaky-soft)] p-4">
                 <p className="text-xs font-black uppercase tracking-widest text-[var(--rc-teaky)]">Teaky</p>
-                <p className="mt-1 text-sm text-white/70">Campus marketplace, coming soon.</p>
+                <p className="mt-1 text-sm text-white/70">Campus marketplace: open a free shop or browse.</p>
               </div>
             </div>
           </section>
