@@ -34,13 +34,43 @@ export const trendingTracks = (signal) =>
 
 export const streamUrl = (id) => BASE + "/tracks/" + encodeURIComponent(id) + "/stream?" + qs();
 
+// Popular songs (30-second clips) from Apple's free search. Uses a script tag so the browser never blocks it.
+const jsonp = (url, timeout) => new Promise((resolve, reject) => {
+  const cb = "__kn" + Date.now() + Math.floor(Math.random() * 100000);
+  const s = document.createElement("script");
+  let timer = null;
+  const done = () => { clearTimeout(timer); delete window[cb]; if (s.parentNode) s.parentNode.removeChild(s); };
+  timer = setTimeout(() => { done(); reject(new Error("timeout")); }, timeout || 10000);
+  window[cb] = (data) => { done(); resolve(data); };
+  s.onerror = () => { done(); reject(new Error("network")); };
+  s.src = url + (url.indexOf("?") > -1 ? "&" : "?") + "callback=" + cb;
+  document.head.appendChild(s);
+});
+
+export const popularTracks = async (q) => {
+  const term = (q && q.trim()) || "afrobeats";
+  const data = await jsonp("https://itunes.apple.com/search?media=music&entity=song&limit=25&country=NG&term=" + encodeURIComponent(term));
+  return (data.results || [])
+    .filter((r) => r.previewUrl && r.trackId)
+    .map((r) => ({
+      id: "it-" + r.trackId,
+      title: clean(r.trackName) || "Untitled",
+      artist: clean(r.artistName) || "Unknown artist",
+      art: r.artworkUrl100 || "",
+      duration: 30,
+      url: String(r.previewUrl).replace(/^http:/, "https:"),
+    }));
+};
+
 // What we store inside the post caption (no server change needed).
 export const encodeTrack = (t) =>
-  "Sound: " + clean(t.title) + " - " + clean(t.artist) + "\n[Track: " + String(t.id).replace(/[^A-Za-z0-9_-]/g, "") + "|" + clean(t.title) + "|" + clean(t.artist) + "]";
+  "Sound: " + clean(t.title) + " - " + clean(t.artist) + "\n[Track: " + String(t.id).replace(/[^A-Za-z0-9_-]/g, "") + "|" + clean(t.title) + "|" + clean(t.artist) + (t.url ? "|" + t.url : "") + "]";
 
 export const parseTrack = (content) => {
-  const m = String(content || "").match(/\[Track: ([^|\]]+)\|([^|\]]*)\|([^\]]*)\]/);
-  return m ? { id: m[1].trim(), title: m[2].trim(), artist: m[3].trim() } : null;
+  const m = String(content || "").match(/\[Track: ([^|\]]+)\|([^|\]]*)\|([^|\]]*)(?:\|([^|\]]*))?\]/);
+  if (!m) return null;
+  const u = (m[4] || "").trim();
+  return { id: m[1].trim(), title: m[2].trim(), artist: m[3].trim(), url: /^https:\/\/[A-Za-z0-9.-]+\.(apple\.com|mzstatic\.com)\//.test(u) ? u : "" };
 };
 
 // ---- one shared audio player for the whole app ----
@@ -62,11 +92,11 @@ const getAudio = () => {
   return audio;
 };
 
-export const playTrack = (id) => {
+export const playTrack = (id, url) => {
   const a = getAudio();
   if (current !== id) {
     current = id;
-    a.src = streamUrl(id);
+    a.src = url || streamUrl(id);
   }
   emit();
   return a.play().catch(() => { playing = false; emit(); });
@@ -76,7 +106,7 @@ export const pauseTrack = (id) => {
   if (audio && (!id || current === id)) audio.pause();
 };
 
-export const useTrackPlayer = (id) => {
+export const useTrackPlayer = (id, url) => {
   const [, tick] = useState(0);
   useEffect(() => {
     const fn = () => tick((n) => n + 1);
@@ -86,6 +116,6 @@ export const useTrackPlayer = (id) => {
   const isPlaying = playing && current === id;
   return {
     playing: isPlaying,
-    toggle: () => (isPlaying ? pauseTrack(id) : playTrack(id)),
+    toggle: () => (isPlaying ? pauseTrack(id) : playTrack(id, url)),
   };
 };

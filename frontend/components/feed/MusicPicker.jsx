@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Search, Play, Pause, Music } from "lucide-react";
-import { audiusReady, searchTracks, trendingTracks, useTrackPlayer, pauseTrack } from "../../utils/audius";
+import { audiusReady, searchTracks, trendingTracks, popularTracks, useTrackPlayer, pauseTrack } from "../../utils/audius";
 
 const Row = ({ track, onPick }) => {
-  const { playing, toggle } = useTrackPlayer(track.id);
+  const { playing, toggle } = useTrackPlayer(track.id, track.url);
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5">
       <button type="button" onClick={toggle} className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white/10 flex items-center justify-center" aria-label="Preview">
@@ -25,20 +25,21 @@ export const MusicPicker = ({ onClose, onPick }) => {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [tab, setTab] = useState("popular");
 
   useEffect(() => {
-    if (!audiusReady) return undefined;
+    if (tab === "indie" && !audiusReady) return undefined;
     const ctrl = new AbortController();
     const wait = setTimeout(() => {
       setLoading(true);
       setError("");
-      const run = q.trim() ? searchTracks(q.trim(), ctrl.signal) : trendingTracks(ctrl.signal);
+      const run = tab === "popular" ? popularTracks(q) : (q.trim() ? searchTracks(q.trim(), ctrl.signal) : trendingTracks(ctrl.signal));
       run
         .then((list) => { setTracks(list); setLoading(false); })
         .catch((e) => { if (e.name !== "AbortError") { setError("Could not load music. Check your internet and try again."); setLoading(false); } });
     }, q.trim() ? 450 : 0);
     return () => { clearTimeout(wait); ctrl.abort(); };
-  }, [q]);
+  }, [q, tab]);
 
   useEffect(() => () => pauseTrack(), []);
 
@@ -51,6 +52,10 @@ export const MusicPicker = ({ onClose, onPick }) => {
           <h3 className="flex items-center gap-2 text-lg font-black text-white"><Music size={18} className="text-primary" /> Add music</h3>
           <button type="button" onClick={close} className="rounded-full p-2 text-white/60 hover:bg-white/10" aria-label="Close"><X size={18} /></button>
         </div>
+        <div className="flex gap-2 px-5 pb-3">
+          <button type="button" onClick={() => { setTracks([]); setTab("popular"); }} className={"rounded-full px-4 py-1.5 text-xs font-bold " + (tab === "popular" ? "bg-primary text-black" : "bg-white/10 text-white/70")}>Popular (30s clips)</button>
+          <button type="button" onClick={() => { setTracks([]); setTab("indie"); }} className={"rounded-full px-4 py-1.5 text-xs font-bold " + (tab === "indie" ? "bg-primary text-black" : "bg-white/10 text-white/70")}>Independent (full)</button>
+        </div>
         <div className="px-5 pb-3">
           <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5">
             <Search size={16} className="text-white/40" />
@@ -58,14 +63,14 @@ export const MusicPicker = ({ onClose, onPick }) => {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-2 pb-5">
-          {!audiusReady && <p className="px-4 py-6 text-center text-sm text-white/60">Music is not switched on yet. The music key is missing.</p>}
-          {audiusReady && !q.trim() && !loading && !error && tracks.length > 0 && <p className="px-4 pb-1 text-[11px] font-bold uppercase tracking-widest text-white/30">Trending now</p>}
+          {tab === "indie" && !audiusReady && <p className="px-4 py-6 text-center text-sm text-white/60">Music is not switched on yet. The music key is missing.</p>}
+          {(tab === "popular" || audiusReady) && !q.trim() && !loading && !error && tracks.length > 0 && <p className="px-4 pb-1 text-[11px] font-bold uppercase tracking-widest text-white/30">{tab === "popular" ? "Afrobeats picks" : "Trending now"}</p>}
           {loading && <p className="px-4 py-6 text-center text-sm text-white/50">Loading...</p>}
           {error && <p className="px-4 py-6 text-center text-sm text-red-400">{error}</p>}
-          {!loading && !error && audiusReady && tracks.length === 0 && <p className="px-4 py-6 text-center text-sm text-white/50">No songs found.</p>}
+          {!loading && !error && (tab === "popular" || audiusReady) && tracks.length === 0 && <p className="px-4 py-6 text-center text-sm text-white/50">No songs found.</p>}
           {!loading && !error && tracks.map((t) => <Row key={t.id} track={t} onPick={(x) => { pauseTrack(); onPick(x); }} />)}
         </div>
-        <p className="px-5 pb-4 text-center text-[10px] text-white/25">Music powered by Audius</p>
+        <p className="px-5 pb-4 text-center text-[10px] text-white/25">Popular: 30-second clips from Apple. Independent: full songs from Audius.</p>
       </div>
     </div>,
     document.body

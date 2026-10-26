@@ -6,7 +6,7 @@ import { parseTrack, playTrack, pauseTrack, useTrackPlayer } from "../../utils/a
 export const PostMusic = ({ content, cardRef }) => {
   const track = parseTrack(content);
   const id = track ? track.id : null;
-  const { playing, toggle } = useTrackPlayer(id);
+  const { playing, toggle } = useTrackPlayer(id, track ? track.url : "");
   const userPaused = useRef(false);
 
   // Video sound would clash with the song, so mute the post's video while the song plays.
@@ -26,7 +26,7 @@ export const PostMusic = ({ content, cardRef }) => {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting && e.intersectionRatio >= 0.6) {
-          if (!userPaused.current) playTrack(id);
+          if (!userPaused.current) playTrack(id, track.url);
         } else {
           pauseTrack(id);
         }
