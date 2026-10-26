@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { useToast } from "../ui/Toast";
 import { CameraModal } from "../chat/CameraModal";
-import EmojiPicker, { Theme } from "emoji-picker-react";
+import EmojiPicker, { Theme } from "../ui/EmojiKeypad";
 
 export const CreateStatusModal = ({ isOpen, onClose, onSuccess }) => {
   const [content, setContent] = useState("");

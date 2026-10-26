@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Camera, Image as ImageIcon, X, MapPin, Smile, Keyboard, Music } from "lucide-react";
 import { MusicPicker } from "./MusicPicker";
 import { encodeTrack } from "../../utils/audius";
-import EmojiPicker, { Theme } from "emoji-picker-react";
+import EmojiPicker, { Theme } from "../ui/EmojiKeypad";
 import { useAuthStore } from "../../store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";

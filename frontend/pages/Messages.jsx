@@ -12,7 +12,7 @@ import { VoiceRecorder } from "../components/chat/VoiceRecorder";
 import { StickerPicker } from "../components/chat/StickerPicker";
 import { AudioPlayer } from "../components/chat/AudioPlayer";
 import { CameraModal } from "../components/chat/CameraModal";
-import EmojiPicker, { Theme } from 'emoji-picker-react';
+import EmojiPicker, { Theme } from '../components/ui/EmojiKeypad';
 import { MediaPlayer } from "../components/ui/MediaPlayer";
 import { useAuthStore } from "../store";
 import { MediaModal } from "../components/ui/MediaModal";

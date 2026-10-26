@@ -8,7 +8,7 @@ import { useAuthStore } from "../../store";
 import { Avatar } from "../ui/Avatar";
 import { useToast } from "../ui/Toast";
 import { getApiErrorMessage } from "../../services/api";
-import EmojiPicker, { Theme } from "emoji-picker-react";
+import EmojiPicker, { Theme } from "../ui/EmojiKeypad";
 export const CommentSection = ({ postId, groupId, authorUsername, }) => {
     const [content, setContent] = useState("");
     const [replyTarget, setReplyTarget] = useState(null);
