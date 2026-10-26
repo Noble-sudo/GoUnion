@@ -132,31 +132,31 @@ export const CreatePost = ({ profileUsername, groupId, mediaOnly = false }) => {
 
           <AnimatePresence>
             {(mediaOnly || isFocused || content.trim() || selectedFile) && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 flex items-center justify-between border-t border-white/5 pt-3">
-                <div className="flex gap-1">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+                <div className="flex min-w-0 gap-0">
                   <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                   <input type="file" ref={cameraInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" capture="environment" />
                   
-                  <button type="button" onClick={() => { if (!isEmojiPickerOpen) document.activeElement?.blur(); setIsEmojiPickerOpen(!isEmojiPickerOpen); }} className="rounded-full p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Emoji">
+                  <button type="button" onClick={() => { if (!isEmojiPickerOpen) document.activeElement?.blur(); setIsEmojiPickerOpen(!isEmojiPickerOpen); }} className="rounded-full p-1.5 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Emoji">
                       {isEmojiPickerOpen ? <Keyboard className="h-5 w-5 text-primary" /> : <Smile className="h-5 w-5" />}
                     </button>
-                    <button type="button" onClick={() => setShowCamera(true)} className="rounded-full p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Camera">
+                    <button type="button" onClick={() => setShowCamera(true)} className="rounded-full p-1.5 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Camera">
                     <Camera className="h-5 w-5" />
                   </button>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full p-2 text-primary/70 transition-colors hover:bg-primary/20 hover:text-primary" title="Photo/Video">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full p-1.5 text-primary/70 transition-colors hover:bg-primary/20 hover:text-primary" title="Photo/Video">
                     <ImageIcon className="h-5 w-5" />
                   </button>
-                  <button type="button" onClick={() => { document.activeElement?.blur(); setShowMusic(true); }} className={"rounded-full p-2 transition-colors hover:bg-white/10 " + (track ? "text-primary" : "text-white/40 hover:text-white")} title="Music">
+                  <button type="button" onClick={() => { document.activeElement?.blur(); setShowMusic(true); }} className={"rounded-full p-1.5 transition-colors hover:bg-white/10 " + (track ? "text-primary" : "text-white/40 hover:text-white")} title="Music">
                     <Music className="h-5 w-5" />
                   </button>
-                  <button type="button" className="rounded-full p-2 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Tag Location">
+                  <button type="button" className="rounded-full p-1.5 text-white/40 transition-colors hover:bg-white/10 hover:text-white" title="Tag Location">
                     <MapPin className="h-5 w-5" />
                   </button>
                 </div>
                 <button
                   type="submit"
                   disabled={(mediaOnly ? !selectedFile : (!content.trim() && !selectedFile)) || mutation.isPending}
-                  className="rounded-full bg-primary px-5 py-1.5 text-sm font-bold text-black transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-black transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {mutation.isPending ? "Posting..." : "Post"}
                 </button>
