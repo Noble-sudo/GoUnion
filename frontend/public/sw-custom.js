@@ -1,38 +1,37 @@
-self.addEventListener('push', function(event) {
+self.addEventListener('push', function (event) {
   if (!event.data) return;
   try {
     const payload = event.data.json();
     const options = {
       body: payload.body || 'New notification received.',
       icon: payload.icon || '/pwa-192x192.png',
-      badge: payload.badge || '/pwa-192x192.png',
-      data: {
-        url: payload.url || '/'
-      }
+      badge: '/badge-96.png',
+      tag: payload.tag || undefined,
+      renotify: Boolean(payload.tag),
+      data: { url: payload.url || '/' }
     };
-    event.waitUntil(
-      self.registration.showNotification(payload.title || 'Konnect', options)
-    );
+    event.waitUntil(self.registration.showNotification(payload.title || 'Konnect', options));
   } catch (err) {
     console.error('Error handling push event:', err);
   }
 });
 
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/';
-  
+  const target = new URL((event.notification.data && event.notification.data.url) || '/', self.location.origin).href;
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        if (client.url.includes(targetUrl) && 'focus' in client) {
-          return client.focus();
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+      for (let i = 0; i < list.length; i++) {
+        const client = list[i];
+        if ('focus' in client) {
+          return client.focus().then(function (focused) {
+            if (focused && 'navigate' in focused) return focused.navigate(target);
+            return focused;
+          });
         }
       }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
+      if (clients.openWindow) return clients.openWindow(target);
     })
   );
 });

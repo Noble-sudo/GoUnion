@@ -37,6 +37,8 @@ import { PwaUpdater } from "./components/pwa/PwaUpdater";
 import { ToastProvider } from "./components/ui/Toast";
 import { ConfirmProvider } from "./components/ui/ConfirmProvider";
 import { usePushNotifications } from "./hooks/usePushNotifications";
+import { useClearNotificationTray } from "./hooks/useClearNotificationTray";
+import { NotificationPrompt } from "./components/pwa/NotificationPrompt";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +84,7 @@ const PrivateRoute = ({ children, noLayout }) => {
 const AppRoutes = () => {
     const { isAuthenticated, updateUser } = useAuthStore();
     usePushNotifications();
+    useClearNotificationTray();
 
     useEffect(() => {
       if (isAuthenticated) {
@@ -139,6 +142,7 @@ const App = () => {
           <BrowserRouter>
             <SocketProvider>
               <BackToPulse />
+              <NotificationPrompt />
               <PwaInstallBanner />
                 <AppRoutes />
             </SocketProvider>
