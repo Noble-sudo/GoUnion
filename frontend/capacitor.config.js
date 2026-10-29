@@ -1,9 +1,18 @@
 const config = {
-    appId: "com.gounion.app",
-    appName: "Konnect",
+    appId: "com.veecity.app",
+    appName: "VeeCity",
     webDir: "dist",
     server: {
         androidScheme: "https",
+    },
+    plugins: {
+        SplashScreen: {
+            launchAutoHide: true,
+            launchShowDuration: 2000,
+            backgroundColor: "#030303",
+            androidSplashResourceName: "splash",
+            showSpinner: false,
+        },
     },
 };
 export default config;
