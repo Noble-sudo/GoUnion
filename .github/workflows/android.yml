@@ -40,6 +40,7 @@ jobs:
       - name: Set version and permissions
         run: |
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i "s/minSdkVersion = 23/minSdkVersion = 24/" android/variables.gradle
           sed -i "s#</manifest>#    <uses-permission android:name=\"android.permission.CAMERA\" />\n    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />\n    <uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />\n</manifest>#" android/app/src/main/AndroidManifest.xml
 
       - name: Build the app bundle
