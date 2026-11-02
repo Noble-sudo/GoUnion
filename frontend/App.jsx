@@ -30,6 +30,7 @@ import { Notifications } from "./pages/Notifications";
 import { DownloadPage } from "./pages/Download";
 import { Privacy } from "./pages/Privacy";
 import { DeleteAccount } from "./pages/DeleteAccount";
+import { ChildSafety } from "./pages/ChildSafety";
 import { SoundFeed } from "./pages/SoundFeed";
 import { ConfirmEmail } from "./pages/ConfirmEmail";
 import { ConfirmIdentity } from "./pages/ConfirmIdentity";
@@ -103,6 +104,7 @@ const AppRoutes = () => {
         <Route path="/download" element={<DownloadPage />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/delete-account" element={<DeleteAccount />} />
+        <Route path="/child-safety" element={<ChildSafety />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
