@@ -13,5 +13,9 @@
       "androidSplashResourceName": "splash",
       "showSpinner": false
     }
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "auto",
+    "backgroundColor": "#030303"
   }
 }
