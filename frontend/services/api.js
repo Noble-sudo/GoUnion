@@ -495,6 +495,10 @@ export const api = {
         unblockUser: async (userId) => {
             const res = await apiClient.post(`/users/${userId}/unblock`);
             return res.data;
+        },
+        deleteAccount: async (password) => {
+            const res = await apiClient.delete('/users/me', { data: { password } });
+            return res.data;
         }
     },
     institutions: {

@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { Router } from 'express';
-import { Follow, PendingSignup, Post, User } from '../models.js';
+import { Comment, Conversation, Follow, GroupEvent, GroupMember, GroupRequest, Message, Notification, OtpToken, PasswordResetToken, EmailVerificationToken, PendingSignup, Post, PostView, PushSubscription, RefreshToken, Story, StoryLike, StoryView, StudentIdentity, CampusXP, CampusStreak, User } from '../models.js';
+import { Product, Shop } from '../shopModels.js';
 import { addNotification, publicUser, serializePost, serializePosts } from '../store.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -85,6 +86,81 @@ usersRouter.put(
     }
     await req.user.save();
     res.json(await publicUser(req.user, req.user.id));
+  }),
+);
+
+// Delete my own account. Needs the password. Removes the person's data, then the account itself last
+// (so if anything fails half way, they can simply try again).
+usersRouter.delete(
+  '/me',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const password = String(req.body?.password || '');
+    if (!password) throw new HttpError(400, 'Please enter your password to delete your account.');
+    if (['admin', 'moderator'].includes(req.user.role)) {
+      throw new HttpError(403, 'Admin accounts cannot be deleted from the app.');
+    }
+    const ok = await bcrypt.compare(password, req.user.password_hash);
+    if (!ok) throw new HttpError(401, 'That password is not correct.');
+
+    const uid = req.user.id;
+
+    // Posts, comments and views
+    const myPosts = await Post.find({ user_id: uid }).select('id').lean();
+    const myPostIds = myPosts.map((p) => p.id);
+    await Comment.deleteMany({ $or: [{ user_id: uid }, { post_id: { $in: myPostIds } }] });
+    await PostView.deleteMany({ $or: [{ user_id: uid }, { post_id: { $in: myPostIds } }] });
+    await Post.deleteMany({ user_id: uid });
+    await Post.updateMany({ likes: uid }, { $pull: { likes: uid } });
+    await Comment.updateMany({ likes: uid }, { $pull: { likes: uid } });
+
+    // Stories
+    const myStories = await Story.find({ user_id: uid }).select('id').lean();
+    const myStoryIds = myStories.map((s) => s.id);
+    await StoryView.deleteMany({ $or: [{ user_id: uid }, { story_id: { $in: myStoryIds } }] });
+    await StoryLike.deleteMany({ $or: [{ user_id: uid }, { story_id: { $in: myStoryIds } }] });
+    await Story.deleteMany({ user_id: uid });
+
+    // Messages: private chats are removed. In group chats the person leaves and their messages are blanked.
+    const chats = await Conversation.find({ participant_ids: uid }).select('id group_id participant_ids').lean();
+    const privateChatIds = chats.filter((c) => !c.group_id && (c.participant_ids || []).length <= 2).map((c) => c.id);
+    await Message.deleteMany({ conversation_id: { $in: privateChatIds } });
+    await Conversation.deleteMany({ id: { $in: privateChatIds } });
+    await Message.updateMany(
+      { sender_id: uid },
+      { $set: { content: '', image_url: null, video_url: null, audio_url: null, sticker_url: null, sticker_id: null, is_deleted: true } },
+    );
+    await Conversation.updateMany({ participant_ids: uid }, { $pull: { participant_ids: uid } });
+
+    // Followers, groups, notifications
+    await Follow.deleteMany({ $or: [{ follower_id: uid }, { following_id: uid }] });
+    await GroupMember.deleteMany({ user_id: uid });
+    await GroupRequest.deleteMany({ user_id: uid });
+    await GroupEvent.updateMany({ attendees: uid }, { $pull: { attendees: uid } });
+    await Notification.deleteMany({ $or: [{ user_id: uid }, { sender_id: uid }] });
+
+    // Teaky shop
+    await Product.deleteMany({ owner_id: uid });
+    await Shop.deleteMany({ owner_id: uid });
+
+    // Sign-in records, tokens, push token, campus data
+    await RefreshToken.deleteMany({ user_id: uid });
+    await PasswordResetToken.deleteMany({ user_id: uid });
+    await EmailVerificationToken.deleteMany({ user_id: uid });
+    await OtpToken.deleteMany({ user_id: uid });
+    await PushSubscription.deleteMany({ user_id: uid });
+    await StudentIdentity.deleteMany({ user_id: uid });
+    await CampusXP.deleteMany({ user_id: uid });
+    await CampusStreak.deleteMany({ user_id: uid });
+    await PendingSignup.deleteMany({ email: req.user.email });
+
+    // Other people who had blocked this person no longer need the entry
+    await User.updateMany({ blocked_users: uid }, { $pull: { blocked_users: uid } });
+
+    // Reports and moderation records are kept on purpose (see the privacy page).
+    await User.deleteOne({ id: uid });
+
+    res.json({ status: 'deleted' });
   }),
 );
 

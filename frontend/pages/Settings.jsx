@@ -78,6 +78,22 @@ export const Settings = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [usernameError, setUsernameError] = useState('');
 
+  /* ─── Delete Account State ─── */
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: (password) => api.users.deleteAccount(password),
+    onSuccess: () => {
+      logout();
+      navigate('/login');
+    },
+    onError: (err) => {
+      setDeleteError(err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Could not delete your account. Please try again.');
+    },
+  });
+
   /* ─── Settings Mutation ─── */
   const updateSettingsMutation = useMutation({
     mutationFn: (settings) => api.users.updateSettings(settings),
@@ -356,6 +372,60 @@ export const Settings = () => {
           </motion.div>
         );
 
+      /* ═══════════════════ DELETE ACCOUNT ═══════════════════ */
+      case 'delete':
+        return (
+          <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} className="space-y-6">
+            <SectionHeader title="Delete Account" />
+
+            <SectionCard className="space-y-3 border-red-500/20 bg-red-500/[0.04]">
+              <h4 className="text-sm font-black text-red-400">This cannot be undone</h4>
+              <p className="text-xs text-white/60 leading-relaxed">
+                Deleting your account permanently removes your profile, posts, reels, stories, comments, likes, private messages, followers, circles activity and any Teaky shop you created.
+              </p>
+              <p className="text-xs text-white/40 leading-relaxed">
+                We may keep reports and moderation records for up to 12 months if we need them to keep the community safe or to follow the law.
+              </p>
+            </SectionCard>
+
+            <SectionCard className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Your password</label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => { setDeletePassword(e.target.value); setDeleteError(''); }}
+                  autoComplete="current-password"
+                  className="w-full bg-white/5 border border-white/5 rounded-xl p-3.5 text-sm text-white outline-none focus:border-red-500/30 transition-all font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Type DELETE to confirm</label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteError(''); }}
+                  autoCapitalize="characters"
+                  className="w-full bg-white/5 border border-white/5 rounded-xl p-3.5 text-sm text-white outline-none focus:border-red-500/30 transition-all font-medium"
+                />
+              </div>
+              {deleteError && <p className="text-[12px] text-red-400 ml-1">{deleteError}</p>}
+              <button
+                type="button"
+                disabled={deleteAccountMutation.isPending || !deletePassword || deleteConfirmText.trim() !== 'DELETE'}
+                onClick={() => { setDeleteError(''); deleteAccountMutation.mutate(deletePassword); }}
+                className="w-full h-13 py-3.5 bg-red-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2.5 hover:bg-red-600 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {deleteAccountMutation.isPending ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <><Trash2 size={16} /><span>Delete my account forever</span></>
+                )}
+              </button>
+            </SectionCard>
+          </motion.div>
+        );
+
       /* ═══════════════════ DEFAULT (MENU) ═══════════════════ */
       default:
         return (
@@ -370,6 +440,13 @@ export const Settings = () => {
               description="End your session on this device"
               danger
               onClick={() => { logout(); navigate('/login'); }}
+            />
+            <NavItem
+              icon={Trash2}
+              label="Delete Account"
+              description="Permanently delete your account and data"
+              danger
+              onClick={() => setActiveTab('delete')}
             />
           </motion.div>
         );

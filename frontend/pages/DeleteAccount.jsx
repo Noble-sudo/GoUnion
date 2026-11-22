@@ -32,7 +32,14 @@ export const DeleteAccount = () => (
       <p className="mt-2 text-sm text-zinc-500">VeeCity (Konnect and Teaky) by NobCyborg</p>
 
       <section className="mt-8">
-        <h2 className="text-lg font-black text-white">How to request deletion</h2>
+        <h2 className="text-lg font-black text-white">Option 1: delete inside the app</h2>
+        <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+          Open VeeCity, go to Settings, tap Delete Account, enter your password, type DELETE and confirm. Your account and data are removed straight away.
+        </p>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="text-lg font-black text-white">Option 2: request deletion by email</h2>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
           {STEPS.map((t, i) => (<li key={i}>{t}</li>))}
         </ol>
