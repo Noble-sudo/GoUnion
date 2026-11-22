@@ -3,7 +3,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Users, Settings as SettingsIcon, Camera, Check, CheckCheck, Image as ImageIcon, FileText, MessageSquarePlus, MoreVertical, Paperclip, Plus, Search, Send, UserPlus, X, Mic, Smile, Trash2, Reply, Share, Share2, Keyboard, Maximize2, Download, ExternalLink , BellOff, Bell, LogOut, Ban, User, Info } from "lucide-react";
+import { ArrowLeft, Users, Settings as SettingsIcon, Camera, Check, CheckCheck, Image as ImageIcon, FileText, MessageSquarePlus, MoreVertical, Paperclip, Plus, Search, Send, UserPlus, X, Mic, Smile, Trash2, Reply, Share, Share2, Keyboard, Maximize2, Download, ExternalLink , BellOff, Bell, LogOut, Ban, User, Info, Flag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, getApiErrorMessage, transformMessage } from "../services/api";
 import { authStorage } from "../utils/persistentStorage";
@@ -386,6 +386,18 @@ export const Messages = ({ embeddedChatId }) => {
         queryClient.setQueryData(["chats"], (old = []) => [tempChat, ...old.filter((chat) => String(chat.partner.id) !== String(person.id))]);
         createChatMutation.mutate(person.id);
     };
+
+    const [reportMsg, setReportMsg] = useState(null);
+    const [reportReason, setReportReason] = useState("");
+    const reportMessageMutation = useMutation({
+        mutationFn: ({ messageId, reason }) => api.reports.create({ messageId, reason }),
+        onSuccess: () => {
+            setReportMsg(null);
+            setReportReason("");
+            toast("Report sent. Thank you, our team will review it.", "success");
+        },
+        onError: (err) => toast(getApiErrorMessage(err, "Failed to send report"), "error")
+    });
 
     const deleteMessageMutation = useMutation({
         mutationFn: (messageId) => api.chats.deleteMessage(messageId),
@@ -830,6 +842,11 @@ export const Messages = ({ embeddedChatId }) => {
                                                                         {mine && (
                                                                             <button onClick={() => { deleteMessageMutation.mutate(msg.id); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-500/10 rounded-lg w-full text-left">
                                                                                 <Trash2 size={14} /> Delete
+                                                                            </button>
+                                                                        )}
+                                                                        {!mine && !msg.isDeleted && (
+                                                                            <button onClick={() => { setReportMsg(msg); setReportReason(""); setActiveMessageMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-500/10 rounded-lg w-full text-left">
+                                                                                <Flag size={14} /> Report
                                                                             </button>
                                                                         )}
                                                                     </div>
@@ -1303,6 +1320,28 @@ export const Messages = ({ embeddedChatId }) => {
                                         ))}
                                     </div>
                                 )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Report message popup */}
+            <AnimatePresence>
+                {reportMsg && (
+                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setReportMsg(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} className="relative z-10 w-full max-w-sm bg-[#111114] border border-white/10 rounded-2xl shadow-2xl p-5">
+                            <h3 className="text-lg font-bold text-white mb-1">Report message</h3>
+                            <p className="text-xs text-white/50 mb-4">Tell us what is wrong. Our team will review this message. You can also block this person from the chat menu.</p>
+                            <div className="flex flex-col gap-2 mb-4">
+                                {["Harassment or bullying", "Spam or scam", "Nudity or sexual content", "Hate or violence", "Something else"].map((r) => (
+                                    <button key={r} onClick={() => setReportReason(r)} className={`text-left px-3 py-2 rounded-xl text-sm border transition-colors ${reportReason === r ? "border-red-500 bg-red-500/10 text-white" : "border-white/10 text-white/70 hover:bg-white/5"}`}>{r}</button>
+                                ))}
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                                <button onClick={() => setReportMsg(null)} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold">Cancel</button>
+                                <button disabled={!reportReason || reportMessageMutation.isPending || reportMessageMutation.isLoading} onClick={() => reportMessageMutation.mutate({ messageId: reportMsg.id, reason: reportReason })} className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-bold">{(reportMessageMutation.isPending || reportMessageMutation.isLoading) ? "Sending..." : "Send report"}</button>
                             </div>
                         </motion.div>
                     </div>

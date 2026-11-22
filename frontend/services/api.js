@@ -1165,6 +1165,7 @@ export const api = {
                 reason: data.reason,
                 post_id: data.postId,
                 comment_id: data.commentId,
+                message_id: data.messageId,
             });
             return res.data;
         },
